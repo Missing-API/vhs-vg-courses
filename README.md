@@ -15,6 +15,7 @@ The service crawls course information from https://www.vhs-vg.de/ and provides s
 
 ## Tech Stack
 
+**Package Manager:** pnpm
 **Framework:** Next.js with API Routes  
 **API Design:** ts-rest with Zod validation  
 **Hosting:** Vercel with Cron Jobs and caching  
