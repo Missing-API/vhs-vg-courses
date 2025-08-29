@@ -1,0 +1,39 @@
+{
+  "kind": "calendar#event",
+  "etag": "\"3359282393140000\"",
+  "id": "7ccpt6eqrvqlvkcl1v8300spjr_20230620T050000Z",
+  "status": "confirmed",
+  "htmlLink": "https://www.google.com/calendar/event?eid=N2NjcHQ2ZXFydnFsdmtjbDF2ODMwMHNwanJfMjAyMzA2MjBUMDUwMDAwWiBjXzBlODE5N2NmOTc1YjEwNjI4MDEwOGUwZmI5NGEyOWY1ODNhMDM2NWQ2MTczYzdlNDI2YjkyOGRiYjBiYWVkNjRAZw",
+  "created": "2023-03-24T06:59:56.000Z",
+  "updated": "2023-03-24T06:59:56.570Z",
+  "summary": "Recurring Event | Schlatkow",
+  "description": "Every tuesday. Bakery. 7:00-7:15 o'clock.\n\n@Ort #Bäckerei",
+  "location": "Streuobstwiese Schlatkow, Schlatkow, 17390 Schmatzin, Deutschland",
+  "creator": {
+    "email": "jan@schafe-vorm-fenster.de",
+    "displayName": "Jan-Henrik Hempel"
+  },
+  "organizer": {
+    "email": "c_0e8197cf975b106280108e0fb94a29f583a0365d6173c7e426b928dbb0baed64@group.calendar.google.com",
+    "displayName": "TEST CONTENT",
+    "self": true
+  },
+  "start": {
+    "dateTime": "2023-06-20T07:00:00+02:00",
+    "timeZone": "Europe/Berlin"
+  },
+  "end": {
+    "dateTime": "2023-06-20T07:15:00+02:00",
+    "timeZone": "Europe/Berlin"
+  },
+  "recurringEventId": "7ccpt6eqrvqlvkcl1v8300spjr",
+  "originalStartTime": {
+    "dateTime": "2023-06-20T07:00:00+02:00",
+    "timeZone": "Europe/Berlin"
+  },
+  "iCalUID": "7ccpt6eqrvqlvkcl1v8300spjr@google.com",
+  "sequence": 0,
+  "reminders": { "useDefault": true },
+  "eventType": "default",
+  "startDateTime": "2023-06-20T07:00:00+02:00"
+}

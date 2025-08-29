@@ -111,6 +111,3 @@ pids
 
 # Optional REPL history
 .node_repl_history
-
-# Project specific
-docs/examples

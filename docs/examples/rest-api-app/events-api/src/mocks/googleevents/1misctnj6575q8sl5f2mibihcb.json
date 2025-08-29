@@ -1,0 +1,34 @@
+{
+  "kind": "calendar#event",
+  "etag": "\"3359282622090000\"",
+  "id": "1misctnj6575q8sl5f2mibihcb",
+  "status": "confirmed",
+  "htmlLink": "https://www.google.com/calendar/event?eid=MW1pc2N0bmo2NTc1cThzbDVmMm1pYmloY2IgY18wZTgxOTdjZjk3NWIxMDYyODAxMDhlMGZiOTRhMjlmNTgzYTAzNjVkNjE3M2M3ZTQyNmI5MjhkYmIwYmFlZDY0QGc",
+  "created": "2023-03-24T07:01:51.000Z",
+  "updated": "2023-03-24T07:01:51.045Z",
+  "summary": "Multi Day Event | Schlatkow",
+  "description": "21.03.2023 8:30 until 23.03.2023 17:00. Some conference for rural living and governance.\n\n@Region #Kommunalpolitik",
+  "location": "Festscheune Schlatkow, Schlatkow 59b, 17390 Schmatzin, Deutschland",
+  "creator": {
+    "email": "jan@schafe-vorm-fenster.de",
+    "displayName": "Jan-Henrik Hempel"
+  },
+  "organizer": {
+    "email": "c_0e8197cf975b106280108e0fb94a29f583a0365d6173c7e426b928dbb0baed64@group.calendar.google.com",
+    "displayName": "TEST CONTENT",
+    "self": true
+  },
+  "start": {
+    "dateTime": "2023-03-21T08:30:00+01:00",
+    "timeZone": "Europe/Berlin"
+  },
+  "end": {
+    "dateTime": "2023-03-23T17:00:00+01:00",
+    "timeZone": "Europe/Berlin"
+  },
+  "iCalUID": "1misctnj6575q8sl5f2mibihcb@google.com",
+  "sequence": 0,
+  "reminders": { "useDefault": true },
+  "eventType": "default",
+  "startDateTime": "2023-03-21T08:30:00+01:00"
+}

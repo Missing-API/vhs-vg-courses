@@ -1,0 +1,29 @@
+{
+  "kind": "calendar#event",
+  "etag": "\"3359282746866000\"",
+  "id": "7lc375tk2i510psa02j3jdippn",
+  "status": "confirmed",
+  "htmlLink": "https://www.google.com/calendar/event?eid=N2xjMzc1dGsyaTUxMHBzYTAyajNqZGlwcG4gY18wZTgxOTdjZjk3NWIxMDYyODAxMDhlMGZiOTRhMjlmNTgzYTAzNjVkNjE3M2M3ZTQyNmI5MjhkYmIwYmFlZDY0QGc",
+  "created": "2023-03-24T07:02:53.000Z",
+  "updated": "2023-03-24T07:02:53.433Z",
+  "summary": "One Day Event | Schlatkow",
+  "description": "Whole day, 29.03.2023.\n\n@Gemeinde #Sport",
+  "location": "Schlatkow, 17390 Schmatzin, Deutschland",
+  "creator": {
+    "email": "jan@schafe-vorm-fenster.de",
+    "displayName": "Jan-Henrik Hempel"
+  },
+  "organizer": {
+    "email": "c_0e8197cf975b106280108e0fb94a29f583a0365d6173c7e426b928dbb0baed64@group.calendar.google.com",
+    "displayName": "TEST CONTENT",
+    "self": true
+  },
+  "start": { "date": "2023-03-29" },
+  "end": { "date": "2023-03-30" },
+  "transparency": "transparent",
+  "iCalUID": "7lc375tk2i510psa02j3jdippn@google.com",
+  "sequence": 0,
+  "reminders": { "useDefault": false },
+  "eventType": "default",
+  "startDateTime": "2023-03-29T03:00:00+02:00"
+}

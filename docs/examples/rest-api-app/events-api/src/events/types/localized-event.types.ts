@@ -1,0 +1,47 @@
+import { z } from "zod";
+import { OccurrenceSchema } from "./occurrence.types";
+import { RuralEventScopeSchema } from "@/packages/rural-event-types/src/rural-event-scope.types";
+import { GeonameIdSchema } from "./geonames.types";
+
+export const LocalizedEventSchema = z.object({
+  id: z.string().optional(),
+  summary: z.string(),
+  description: z.string(),
+  link: z.string(),
+  image: z.string(),
+  "image.exists": z.boolean(),
+  document: z.string(),
+  "document.exists": z.boolean(),
+  categories: z.array(z.string()),
+  tags: z.array(z.string()),
+  start: z.number(),
+  end: z.number(),
+  allday: z.boolean(),
+  occurrence: OccurrenceSchema,
+  "series.id": z.string(),
+  "location.raw": z.string(),
+  "location.name": z.string(),
+  "location.localname": z.string(),
+  "location.address": z.string(),
+  "location.geopoint": z.any(),
+  scope: RuralEventScopeSchema,
+  "community.id": GeonameIdSchema,
+  "community.geopoint": z.any(),
+  "community.name": z.string(),
+  "municipality.id": GeonameIdSchema,
+  "municipality.name": z.string(),
+  "county.id": GeonameIdSchema,
+  "county.name": z.string(),
+  "state.id": GeonameIdSchema,
+  "state.name": z.string(),
+  "country.id": z.string(),
+  "country.name": z.string(),
+  "organizer.id": z.string(),
+  "organizer.name": z.string(),
+  "calendar.id": z.string(),
+  "calendar.name": z.string(),
+  created: z.number(),
+  changed: z.number(),
+  deleted: z.number(),
+});
+export type LocalizedEvent = z.infer<typeof LocalizedEventSchema>;

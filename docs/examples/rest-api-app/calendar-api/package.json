@@ -1,0 +1,70 @@
+{
+  "name": "@schafevormfenster/calendar-api",
+  "version": "1.0.1",
+  "private": true,
+  "description": "The calendar API delivers data related to organizers and calendars from the CRM, facilitating access to calendar events sourced from Google calendars.",
+  "keywords": [
+    "calendar",
+    "events"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/schafe-vorm-fenster/calendar-api"
+  },
+  "bugs": {
+    "url": "https://github.com/schafe-vorm-fenster/calendar-api/issues"
+  },
+  "homepage": "https://www.schafe-vorm-fenster.de",
+  "license": "MIT",
+  "author": {
+    "name": "Schafe vorm Fenster UG",
+    "email": "jan@schafe-vorm-fenster.de",
+    "url": "https://www.schafe-vorm-fenster.de"
+  },
+  "browser": {
+    "fs": false,
+    "path": false,
+    "os": false
+  },
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev -p 8500",
+    "lint": "next lint",
+    "start": "next start -p 8500",
+    "test": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@google-cloud/local-auth": "2.1.0",
+    "@googleapis/calendar": "^9.8.0",
+    "@ts-rest/open-api": "^3.52.1",
+    "googleapis": "^146.0.0",
+    "next": "15.3.0-canary.10",
+    "pino": "^9.6.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "swagger-ui-react": "^5.20.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@ts-rest/core": "^3.52.1",
+    "@ts-rest/serverless": "^3.51.0",
+    "@types/gapi.calendar": "^3.0.6",
+    "@types/node": "^22.13.10",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "@types/swagger-ui-react": "^5.18.0",
+    "@vitest/coverage-v8": "^3.0.8",
+    "eslint": "^9.22.0",
+    "eslint-config-next": "^15.2.2-canary.6",
+    "eslint-plugin-prettier": "^5.2.3",
+    "gaxios": "^6.7.1",
+    "msw": "^2.3.1",
+    "prettier": "^3.5.3",
+    "typescript": "^5.0.4",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.0.8"
+  },
+  "engines": {
+    "node": "22.x"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "name": "@schafevormfenster/rural-event-types",
+  "version": "0.0.1",
+  "description": "Supplies typings and constants to help classify events within rural areas.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/schafevormfenster/events-api.git"
+  },
+  "private": false,
+  "keywords": [
+    "typescript",
+    "types",
+    "events",
+    "rural"
+  ],
+  "author": "Jan-Henrik Hempel <jan@schafe-vorm-fenster.de>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/schafevormfenster/events-api/issues"
+  },
+  "homepage": "https://github.com/schafevormfenster/events-api/tree/master/packages/rural-event-types#readme",
+  "files": [
+    "dist/*",
+    "src/**/*"
+  ],
+  "devDependencies": {
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "zod": "^3.24.2"
+  },
+  "type": "module"
+}

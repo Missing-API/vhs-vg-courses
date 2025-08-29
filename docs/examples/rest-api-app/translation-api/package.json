@@ -1,0 +1,64 @@
+{
+  "name": "@schafevormfenster/translation-api",
+  "description": "An API to translate content.",
+  "version": "1.0.0",
+  "homepage": "https://translation.api.schafe-vorm-fenster.de/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/schafe-vorm-fenster/translation-api"
+  },
+  "bugs": {
+    "url": "https://github.com/schafe-vorm-fenster/translation-api/issues"
+  },
+  "author": {
+    "name": "Jan-Henrik Hempel",
+    "email": "jan@schafe-vorm-fenster.de"
+  },
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 8200",
+    "build": "next build",
+    "start": "next start -p 8200",
+    "lint": "next lint",
+    "test": "jest --maxWorkers=25%",
+    "test:watch": "jest --watch --maxWorkers=25%",
+    "test:ci": "jest --runInBand --ci"
+  },
+  "engines": {
+    "node": "22.x"
+  },
+  "dependencies": {
+    "@ts-rest/core": "^3.52.1",
+    "@ts-rest/open-api": "^3.52.1",
+    "@ts-rest/serverless": "^3.52.1",
+    "@vercel/edge-config": "^1.4.0",
+    "google-auth-library": "^10.2.0",
+    "next": "^15.4.4",
+    "next-swagger-doc": "^0.4.1",
+    "pino": "^9.7.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "swagger-ui-react": "^5.27.0",
+    "zod": "^4.0.10"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.1",
+    "@types/lodash": "^4.17.20",
+    "@types/node": "^24.1.0",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@types/swagger-ui-react": "^5.18.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "cross-env": "^10.0.0",
+    "dotenv": "^17.2.1",
+    "eslint": "^9.32.0",
+    "eslint-config-next": "^15.4.4",
+    "eslint-plugin-prettier": "^5.5.3",
+    "prettier": "^3.6.2",
+    "typescript": "^5.8.3",
+    "vercel": "^44.6.3",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.2.4"
+  }
+}
