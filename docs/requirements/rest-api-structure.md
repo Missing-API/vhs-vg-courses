@@ -47,67 +47,9 @@ This document defines the REST API structure for the VHS-VG Course Calendar API.
 {
   "locations": [
     {
-      "id": "anklam",
-      "name": "Anklam",
-      "address": {
-        "street": "Demminer Straße 14a",
-        "city": "Anklam",
-        "postalCode": "17389",
-        "country": "Deutschland"
-      },
-      "coordinates": {
-        "latitude": 53.8562,
-        "longitude": 13.6886
-      },
-      "contact": {
-        "phone": "+49 3971 258578",
-        "email": "anklam@vhs-vg.de",
-        "website": "https://www.vhs-vg.de"
-      },
-      "courseCount": 66,
-      "lastUpdated": "2025-08-29T10:30:00Z"
-    },
-    {
-      "id": "greifswald",
-      "name": "Greifswald",
-      "address": {
-        "street": "Martin-Andersen-Nexö-Platz 1",
-        "city": "Greifswald",
-        "postalCode": "17489",
-        "country": "Deutschland"
-      },
-      "coordinates": {
-        "latitude": 54.0924,
-        "longitude": 13.3814
-      },
-      "contact": {
-        "phone": "+49 3834 8836810",
-        "email": "greifswald@vhs-vg.de",
-        "website": "https://www.vhs-vg.de"
-      },
-      "courseCount": 125,
-      "lastUpdated": "2025-08-29T10:30:00Z"
-    },
-    {
       "id": "pasewalk",
       "name": "Pasewalk",
-      "address": {
-        "street": "Am Markt 5",
-        "city": "Pasewalk",
-        "postalCode": "17309",
-        "country": "Deutschland"
-      },
-      "coordinates": {
-        "latitude": 53.5047,
-        "longitude": 14.0022
-      },
-      "contact": {
-        "phone": "+49 3973 444648",
-        "email": "pasewalk@vhs-vg.de",
-        "website": "https://www.vhs-vg.de"
-      },
-      "courseCount": 51,
-      "lastUpdated": "2025-08-29T10:30:00Z"
+      "address": "Am Markt 5, 17309 Pasewalk",
     }
   ],
   "totalLocations": 3,
