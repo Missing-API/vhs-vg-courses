@@ -8,7 +8,7 @@ import { Course } from "./courses.schema";
 function parseStartIso(text: string): string | undefined {
   // Extract DD.MM.YYYY and HH.MM patterns
   const dmy = text.match(/(\d{2})\.(\d{2})\.(\d{4})/);
-  const hm = text.match(/(\d{1,2})\.(\d{2})/);
+  const hm = text.match(/(\d{1,2})\.(\d{2})\s*Uhr/); // Match time pattern followed by "Uhr"
   if (!dmy || !hm) return undefined;
 
   const day = Number(dmy[1]);

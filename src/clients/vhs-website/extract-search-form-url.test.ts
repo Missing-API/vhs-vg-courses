@@ -49,10 +49,16 @@ describe("extractSearchFormUrl", () => {
   it("should throw if action missing", async () => {
     const html = `
     <html><body>
-      <div class="hauptseite_kurse">
-        <div><div class="kw-kursuebersicht">
-          <div class="kw-nurbuchbare"><form method="post"></form></div>
-        </div></div>
+      <div>
+        <div class="hauptseite_kurse">
+          <div>
+            <div class="kw-kursuebersicht">
+              <div class="kw-nurbuchbare">
+                <form method="post"></form>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </body></html>`;
     vi.spyOn(global, "fetch").mockResolvedValue(new Response(html, { status: 200 }));
