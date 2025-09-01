@@ -14,10 +14,9 @@ describe("/api/locations (integration)", () => {
       if (response.status === 200) {
         const body = await response.json();
 
-        expect(body).toHaveProperty("locations");
-        expect(body).toHaveProperty("totalLocations");
-        expect(Array.isArray(body.locations)).toBe(true);
-        expect(typeof body.totalLocations).toBe("number");
+        expect(body).toHaveProperty("data");
+        expect(body.data).toHaveProperty("locations");
+        expect(Array.isArray(body.data.locations)).toBe(true);
       }
     } catch (error) {
       // If the server is not running, skip this test

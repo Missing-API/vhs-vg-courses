@@ -6,4 +6,4 @@ export const ResultSchema = OkaySchema.extend({
     .string()
     .transform((val) => new Date(val).toISOString()),
 });
-export type ResultSchema = z.infer&lt;typeof ResultSchema&gt;;
+export type ResultSchema = z.infer<typeof ResultSchema>;

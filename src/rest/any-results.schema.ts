@@ -4,4 +4,4 @@ import { ResultsSchema } from "./results.schema";
 export const AnyResultsSchema = ResultsSchema.extend({
   data: z.array(z.any()),
 });
-export type AnyResultsSchema = z.infer&lt;typeof AnyResultsSchema&gt;;
+export type AnyResultsSchema = z.infer<typeof AnyResultsSchema>;

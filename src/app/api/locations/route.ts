@@ -7,10 +7,9 @@ const ONE_DAY_SECONDS = 60 * 60 * 24;
 const handler = createNextHandler(
   LocationsContract,
   {
-    // @ts-expect-error - ts-rest handler signature doesn't expose headers type here
-    locations: async ({}, res: { responseHeaders: Headers }) =&gt; {
+    locations: async ({}, res: { responseHeaders: Headers }) => {
       try {
-        const payload = await getLocations();
+        const locationsData = await getLocations();
 
         // 1 day cache as per API specification
         res.responseHeaders.set(
@@ -20,7 +19,11 @@ const handler = createNextHandler(
 
         return {
           status: 200,
-          body: payload,
+          body: {
+            status: 200,
+            timestamp: new Date().toISOString(),
+            data: locationsData,
+          },
         };
       } catch (err) {
         const message =

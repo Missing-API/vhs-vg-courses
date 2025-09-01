@@ -3,54 +3,54 @@ import { NextRequest } from "next/server";
 import * as client from "@/clients/vhs-website/vhs-search.client";
 import { GET } from "./route";
 
-const createMockRequest = (url: string = "http://localhost:9200/api/locations") =&gt; {
+const createMockRequest = (url: string = "http://localhost:9200/api/locations") => {
   return new NextRequest(url, {
     method: "GET",
   });
 };
 
-describe("/api/locations", () =&gt; {
+describe("/api/locations", () => {
   const mockLocations = {
     locations: [
       { id: "anklam", name: "Anklam", address: "Am Markt 1, 17389 Anklam" },
       { id: "greifswald", name: "Greifswald", address: "Nexö-Platz 1, 17489 Greifswald" },
       { id: "pasewalk", name: "Pasewalk", address: "Am Markt 5, 17309 Pasewalk" },
     ],
-    totalLocations: 3,
-    totalCourses: 242,
-    lastUpdated: new Date().toISOString(),
   };
 
-  beforeEach(() =&gt; {
+  beforeEach(() => {
     vi.spyOn(client, "getLocations").mockResolvedValue(mockLocations);
   });
 
-  afterEach(() =&gt; {
+  afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("should return a successful response with all 3 locations", async () =&gt; {
+  it("should return a successful response with all 3 locations", async () => {
     const response = await GET(createMockRequest());
     expect(response.status).toBe(200);
     const body = await response.json();
 
-    expect(body.totalLocations).toBe(3);
-    expect(Array.isArray(body.locations)).toBe(true);
-    expect(body.locations.length).toBe(3);
+    expect(body).toHaveProperty("status");
+    expect(body).toHaveProperty("timestamp");
+    expect(body).toHaveProperty("data");
+    expect(body.status).toBe(200);
+    expect(body.data.locations.length).toBe(3);
 
-    const ids = body.locations.map((l: any) =&gt; l.id).sort();
+    const ids = body.data.locations.map((l: any) => l.id).sort();
     expect(ids).toEqual(["anklam", "greifswald", "pasewalk"].sort());
   });
 
-  it("should return correct structure and data validation", async () =&gt; {
+  it("should return correct structure and data validation", async () => {
     const response = await GET(createMockRequest());
     const body = await response.json();
 
-    expect(body).toHaveProperty("locations");
-    expect(body).toHaveProperty("totalLocations");
-    expect(body).toHaveProperty("lastUpdated");
-    expect(Array.isArray(body.locations)).toBe(true);
-    body.locations.forEach((loc: any) =&gt; {
+    expect(body).toHaveProperty("status");
+    expect(body).toHaveProperty("timestamp");
+    expect(body).toHaveProperty("data");
+    expect(body.data).toHaveProperty("locations");
+    expect(Array.isArray(body.data.locations)).toBe(true);
+    body.data.locations.forEach((loc: any) => {
       expect(loc).toHaveProperty("id");
       expect(loc).toHaveProperty("name");
       expect(typeof loc.id).toBe("string");
@@ -58,16 +58,16 @@ describe("/api/locations", () =&gt; {
     });
 
     // ISO date string
-    expect(new Date(body.lastUpdated).toString()).not.toBe("Invalid Date");
+    expect(new Date(body.timestamp).toString()).not.toBe("Invalid Date");
   });
 
-  it("should set 1-day cache control header", async () =&gt; {
+  it("should set 1-day cache control header", async () => {
     const response = await GET(createMockRequest());
     const cc = response.headers.get("cache-control");
     expect(cc).toContain("max-age=86400");
   });
 
-  it("should handle errors with 500 status", async () =&gt; {
+  it("should handle errors with 500 status", async () => {
     vi.spyOn(client, "getLocations").mockRejectedValueOnce(new Error("Network error"));
     const response = await GET(createMockRequest());
     expect(response.status).toBe(500);
