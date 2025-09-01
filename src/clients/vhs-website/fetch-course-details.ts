@@ -85,40 +85,37 @@ function extractLabeledField($: cheerio.CheerioAPI, label: string): string | und
 }
 
 /**
- * Parse detailed schedule entries from lists or tables
+ * Parse detailed schedule entries exclusively from the schedule table `#kw-kurstage`.
+ * We intentionally ignore any sidebar lists or other tables that may duplicate or summarise dates.
  */
 function extractSchedule($: cheerio.CheerioAPI): CourseSession[] {
   const sessions: CourseSession[] = [];
-  const listSelectors = [
-    ".termine li",
-    ".schedule li",
-    ".course-dates li",
-    "ul li",
-  ];
-  for (const sel of listSelectors) {
-    $(sel).each((_, li) => {
-      const text = $(li).text().replace(/\s+/g, " ").trim();
-      if (/\d{1,2}\.\d{1,2}\.\d{4}/.test(text)) {
-        try {
-          sessions.push(parseScheduleEntry(text));
-        } catch {
-          // ignore entry parse errors
-        }
-      }
-    });
-    if (sessions.length) break;
+
+  const table = $("#kw-kurstage");
+  if (!table.length) {
+    return sessions;
   }
-  // tables
-  if (!sessions.length) {
-    $("table tr").each((_, tr) => {
-      const rowText = $(tr).text().replace(/\s+/g, " ").trim();
-      if (/\d{1,2}\.\d{1,2}\.\d{4}/.test(rowText)) {
-        try {
-          sessions.push(parseScheduleEntry(rowText));
-        } catch {}
+
+  // Iterate over rows (skip header if present)
+  table.find("tr").each((idx, tr) => {
+    const row = $(tr);
+    // Skip header rows that contain th
+    if (row.find("th").length) return;
+
+    const cells = row.find("td").toArray().map((td) => $(td).text().replace(/\s+/g, " ").trim()).filter(Boolean);
+    if (!cells.length) return;
+
+    // Join the row cells with separators so parseScheduleEntry can detect date/time/location
+    const rowText = cells.join(" • ");
+    if (/\d{1,2}\.\d{1,2}\.\d{4}/.test(rowText)) {
+      try {
+        sessions.push(parseScheduleEntry(rowText));
+      } catch {
+        // ignore entry parse errors for robustness
       }
-    });
-  }
+    }
+  });
+
   return sessions;
 }
 
@@ -181,6 +178,11 @@ export async function fetchCourseDetails(courseId: string): Promise<CourseDetail
   const termine = extractLabeledField($, "Termine");
   if (termine) {
     const m = termine.match(/(\d+)/);
+    if (m) numberOfDates = Number(m[1]);
+  }
+  // If no explicit "Termine" field, try to infer count from the "Dauer" text e.g. "10 Termine"
+  if (!numberOfDates && duration) {
+    const m = duration.match(/(\d+)\s*Termine?/i);
     if (m) numberOfDates = Number(m[1]);
   }
 
