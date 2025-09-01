@@ -10,3 +10,29 @@ export { buildCourseSearchRequest, courseSearchHeaders } from "./build-course-se
 export { extractPaginationLinks } from "./extract-pagination-links";
 export { parseCourseResults } from "./parse-course-results";
 export { getCourses } from "./get-courses";
+
+// Course details
+export { fetchCourseDetails } from "./fetch-course-details";
+export {
+  CourseDetailsSchema,
+  CourseSessionSchema,
+  type CourseDetails,
+  type CourseSession,
+} from "./course-details.schema";
+// Parsers
+export { parseGermanDate, parseTimeRange, convertToISO8601, parseScheduleEntry } from "./parse-course-dates";
+export { extractJsonLd, findCourseJsonLd } from "./parse-json-ld";
+// Schemas
+export {
+  CourseSchema,
+  CoursesResponseSchema,
+  ErrorResponseSchema,
+  type Course,
+  type CoursesResponse,
+} from "./courses.schema";
+export {
+  LocationSchema,
+  LocationsResponseSchema,
+  type Location,
+  type LocationsResponse,
+} from "./locations.schema";
