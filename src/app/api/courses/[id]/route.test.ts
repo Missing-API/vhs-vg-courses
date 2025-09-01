@@ -61,8 +61,20 @@ describe("/api/courses/[id]", () => {
     const response = await GET(createMockRequest("http://localhost:9200/api/courses/invalid-id"));
     expect(response.status).toBe(400);
     const body = await response.json();
+    
+    // ts-rest returns validation error structure for invalid path parameters
     expect(body).toMatchObject({
-      status: 400,
+      message: "Request validation failed",
+      pathParameterErrors: {
+        issues: expect.arrayContaining([
+          expect.objectContaining({
+            code: "invalid_string",
+            validation: "regex",
+            path: ["id"],
+            message: expect.stringContaining("Invalid course id format")
+          })
+        ])
+      }
     });
   });
 

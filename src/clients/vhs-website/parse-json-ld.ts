@@ -1,5 +1,3 @@
-"use cache";
-
 import * as cheerio from "cheerio";
 
 export type JsonLdCourse = {

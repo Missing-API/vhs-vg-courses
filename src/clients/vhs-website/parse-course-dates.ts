@@ -1,5 +1,3 @@
-"use cache";
-
 const WEEKDAYS_DE = [
   "sonntag",
   "montag",
