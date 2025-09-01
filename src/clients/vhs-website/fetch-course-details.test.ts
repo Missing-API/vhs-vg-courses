@@ -39,9 +39,24 @@ const htmlWithJsonLd = `
     <dt>Dauer:</dt><dd>1 Termin</dd>
     <dt>Termine:</dt><dd>1</dd>
   </dl>
+  <!-- Sidebar lists should be ignored -->
   <ul class="termine">
     <li>Samstag • 15.11.2025 • 09:00 - 16:00 Uhr • VHS in Pasewalk • Raum 302</li>
   </ul>
+  <!-- Official schedule table -->
+  <table id="kw-kurstage">
+    <thead>
+      <tr><th>Datum</th><th>Uhrzeit</th><th>Ort</th><th>Raum</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>15.11.2025</td>
+        <td>09:00 - 16:00 Uhr</td>
+        <td>VHS in Pasewalk</td>
+        <td>Raum 302</td>
+      </tr>
+    </tbody>
+  </table>
 </div>
 </body></html>
 `;
@@ -58,10 +73,31 @@ const htmlWithoutJsonLd = `
   <dt>Dauer:</dt><dd>5 Termine</dd>
   <dt>Termine:</dt><dd>5</dd>
 </dl>
+<!-- Sidebar list should be ignored -->
 <ul class="course-dates">
   <li>Montag • 10.11.2025 • 17:00 - 20:15 Uhr • VHS in Greifswald • Raum 12</li>
   <li>Mittwoch • 12.11.2025 • 17:00 - 20:15 Uhr • VHS in Greifswald • Raum 12</li>
 </ul>
+<!-- Official schedule table -->
+<table id="kw-kurstage">
+  <thead>
+    <tr><th>Datum</th><th>Uhrzeit</th><th>Ort</th><th>Raum</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>10.11.2025</td>
+      <td>17:00 - 20:15 Uhr</td>
+      <td>VHS in Greifswald</td>
+      <td>Raum 12</td>
+    </tr>
+    <tr>
+      <td>12.11.2025</td>
+      <td>17:00 - 20:15 Uhr</td>
+      <td>VHS in Greifswald</td>
+      <td>Raum 12</td>
+    </tr>
+  </tbody>
+</table>
 </div>
 </body></html>
 `;
