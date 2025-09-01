@@ -50,18 +50,19 @@ describe("parseCourseResults", () => {
     expect(courses).toHaveLength(2);
 
     const first = courses[0];
-    expect(first.courseNumber).toBe("252A40901");
+    expect(first.id).toBe("252A40901");
     expect(first.title).toContain("Italienisch für Anfänger");
     expect(first.locationText).toContain("VHS Anklam");
-    expect(first.belegungText).toBe("4 von 6");
+    expect(first.available).toBe(true); // 4 von 6 -> available
     expect(first.bookable).toBe(false);
     expect(first.detailUrl).toBe("https://www.vhs-vg.de/kurse/kurs/Italienisch-fuer-Anfaenger-A1A2-geringe-Vorkenntnisse-Modul-3/252A40901");
-    expect(first.dateText).toContain("06.09.2025");
+    expect(first.start).toBe("2025-09-06T09:15:00.000Z");
 
     const second = courses[1];
     expect(second.bookable).toBe(true);
     expect(second.detailUrl).toBe("https://www.vhs-vg.de/kurse/kurs/Hatha-Yoga-Ruhe-Kraft-und-Zentriertheit-finden/252A30106");
-    expect(second.belegungText).toBe("11 von 14");
+    expect(second.available).toBe(true); // 11 von 14 -> available
+    expect(second.start).toBe("2025-09-09T18:15:00.000Z");
   });
 
   it("should return empty array if no table found", () => {

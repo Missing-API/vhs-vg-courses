@@ -79,10 +79,9 @@ describe("getCourses", () => {
             id: "252A001",
             title: "Course 1",
             detailUrl: "https://www.vhs-vg.de/kurse/kurs/course-1/252A001",
-            dateText: "Mo. 01.09.2025, 10.00 Uhr",
+            start: "2025-09-01T10:00:00.000Z",
             locationText: "Ort A",
-            belegungText: "1 von 10",
-            courseNumber: "252A001",
+            available: true,
             bookable: true,
           },
         ];
@@ -93,10 +92,9 @@ describe("getCourses", () => {
             id: "252A002",
             title: "Course 2",
             detailUrl: "https://www.vhs-vg.de/kurse/kurs/course-2/252A002",
-            dateText: "Di. 02.09.2025, 11.00 Uhr",
+            start: "2025-09-02T11:00:00.000Z",
             locationText: "Ort B",
-            belegungText: "2 von 10",
-            courseNumber: "252A002",
+            available: true,
             bookable: false,
           },
         ];
@@ -107,10 +105,9 @@ describe("getCourses", () => {
           id: "252A001",
           title: "Course 1",
           detailUrl: "https://www.vhs-vg.de/kurse/kurs/course-1/252A001",
-          dateText: "Mo. 01.09.2025, 10.00 Uhr",
+          start: "2025-09-01T10:00:00.000Z",
           locationText: "Ort A",
-          belegungText: "1 von 10",
-          courseNumber: "252A001",
+          available: true,
           bookable: true,
         },
       ];
@@ -130,7 +127,7 @@ describe("getCourses", () => {
 
     // Should deduplicate Course 1
     expect(result.courses).toHaveLength(2);
-    const ids = result.courses.map(c => c.courseNumber).sort();
+    const ids = result.courses.map(c => c.id).sort();
     expect(ids).toEqual(["252A001", "252A002"].sort());
 
     // Count and validation

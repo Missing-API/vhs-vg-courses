@@ -1,13 +1,13 @@
 import { z } from "zod";
+import { ISO8601Schema } from "@/rest/iso8601.types";
 
 export const CourseSchema = z.object({
-  id: z.string(), // prefer course number
+  id: z.string(), // course number if available
   title: z.string(),
   detailUrl: z.string(), // absolute URL to course detail
-  dateText: z.string(), // raw date/time text from list (e.g., "Mo. 08.09.2025, 13.00 Uhr")
+  start: ISO8601Schema, // ISO8601 start datetime
   locationText: z.string(), // as shown in table
-  belegungText: z.string(), // e.g., "4 von 6"
-  courseNumber: z.string(),
+  available: z.boolean(), // derived from "x von y"
   bookable: z.boolean(),
 });
 export type Course = z.infer<typeof CourseSchema>;

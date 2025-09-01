@@ -77,10 +77,10 @@ export async function getCourses(locationId: string): Promise<CoursesResponse> {
     allCourses.push(...parsed);
   }
 
-  // 7) Deduplicate by courseNumber or detailUrl
+  // 7) Deduplicate by id or detailUrl
   const dedupMap = new Map<string, Course>();
   for (const c of allCourses) {
-    const key = c.courseNumber || c.detailUrl;
+    const key = c.id || c.detailUrl;
     if (!dedupMap.has(key)) {
       dedupMap.set(key, c);
     }
