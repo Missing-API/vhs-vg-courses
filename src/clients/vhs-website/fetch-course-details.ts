@@ -23,12 +23,67 @@ function buildCourseUrl(id: string) {
 }
 
 /**
- * Extract description from HTML paragraphs within course content blocks
+ * HTML escape for text nodes/attributes
  */
-function extractDescription($: cheerio.CheerioAPI): string {
-  // Heuristic: look for main content area and paragraphs
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/**
+ * Simplify rich HTML into a single wrapping <div> with text and <br> for line breaks.
+ * - Removes all tags/attributes
+ * - Preserves line breaks for paragraphs, divs, list items and <br>
+ * - Collapses duplicate/empty lines
+ */
+function simplifyHtmlToDiv(fragmentHtml: string): string {
+  if (!fragmentHtml) return "<div></div>";
+
+  // Convert obvious line break boundaries to \n
+  let s = fragmentHtml
+    .replace(/<\s*br\s*\/?>/gi, "\n")
+    .replace(/<\/\s*(p|div|li|h[1-6])\s*>/gi, "\n")
+    // remove scripts/styles entirely
+    .replace(/<\s*(script|style)[^>]*>[\s\S]*?<\/\s*\1\s*>/gi, "");
+
+  // Strip all remaining tags
+  s = s.replace(/<[^>]+>/g, "");
+
+  // Normalize whitespace and lines
+  s = s.replace(/\u00a0/g, " "); // nbsp to space
+  const lines = s
+    .split("\n")
+    .map((l) => l.replace(/\s+/g, " ").trim())
+    .filter((l) => l.length > 0);
+
+  // Join with single <br>
+  const inner = lines.map((l) => escapeHtml(l)).join("<br>");
+  return `<div>${inner}</div>`;
+}
+
+/**
+ * Extract description primarily from div.kw-kurs-info-text, with fallbacks.
+ * Returns simplified HTML (<div> ... <br> ... </div>) as string.
+ */
+function extractDescription($: cheerio.CheerioAPI, jsonld?: { description?: string }): string {
+  // Primary: div.kw-kurs-info-text
+  const info = $("div.kw-kurs-info-text").first();
+  if (info.length) {
+    const raw = info.html() || "";
+    return simplifyHtmlToDiv(raw);
+  }
+
+  // Secondary: JSON-LD description
+  if (jsonld?.description) {
+    return simplifyHtmlToDiv(jsonld.description);
+  }
+
+  // Tertiary: generic paragraphs in known containers
   const texts: string[] = [];
-  // common content containers
   const containers = [
     ".hauptseite_mitstatus",
     "div.hauptseite_ohnestatus",
@@ -39,20 +94,22 @@ function extractDescription($: cheerio.CheerioAPI): string {
   for (const sel of containers) {
     $(sel).find("p").each((_, p) => {
       const t = $(p).text().replace(/\s+/g, " ").trim();
-      if (t && t.length > 0) texts.push(t);
+      if (t) texts.push(t);
     });
     if (texts.length) break;
   }
-  // fallback: any paragraph
   if (!texts.length) {
     $("p").each((_, p) => {
       const t = $(p).text().replace(/\s+/g, " ").trim();
-      if (t && t.length > 0) texts.push(t);
+      if (t) texts.push(t);
     });
   }
-  // filter boilerplate
-  const joined = texts.join("\n");
-  return joined.trim();
+  if (texts.length) {
+    return simplifyHtmlToDiv(texts.join("\n"));
+  }
+
+  // Final: empty
+  return "<div></div>";
 }
 
 /**
@@ -63,7 +120,7 @@ function extractLabeledField($: cheerio.CheerioAPI, label: string): string | und
   // dt/dd
   $("dt, th, .label").each((_, el) => {
     const txt = $(el).text().replace(/\s+/g, " ").trim();
-    if (new RegExp(`^${label}\\s*:?$`, "i").test(txt)) {
+    if (new RegExp(`^${label}\\s*:?, "i").test(txt)) {
       const next = $(el).next();
       const val = next.text().replace(/\s+/g, " ").trim();
       if (val) candidates.push(val);
@@ -128,6 +185,82 @@ function extractSchedule($: cheerio.CheerioAPI): CourseSession[] {
 }
 
 /**
+ * Format an ISO date to German format "Sa., 15.11.2025, um 09:00 Uhr"
+ * Falls back gracefully if invalid.
+ */
+function formatGermanDateTime(iso?: string): string | undefined {
+  if (!iso) return undefined;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return undefined;
+
+  const datePart = new Intl.DateTimeFormat("de-DE", {
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: "Europe/Berlin",
+  }).format(d);
+
+  const timePart = new Intl.DateTimeFormat("de-DE", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Europe/Berlin",
+  }).format(d);
+
+  return `${datePart}, um ${timePart} Uhr`;
+}
+
+/**
+ * Build a summary HTML snippet combining description, start info and link.
+ */
+export function buildSummary(
+  description: string,
+  startDateIso: string,
+  duration: string,
+  courseDetailUrl: string
+): string {
+  // Pull inner content of description's outer <div> (if present)
+  let descInner = "";
+  if (description) {
+    const $desc = cheerio.load(description);
+    const inner = $desc("div").first().html() ?? $desc.root().html() ?? "";
+    // We only allow text and <br> from the cleaned description; ensure no attributes remain
+    // Clean any stray tags except <br>
+    const cleaned = inner
+      .replace(/<\s*(?!br\s*\/?)[^>]+>/gi, "")
+      .replace(/<\s*br\s*\/?>/gi, "<br>")
+      .replace(/(\s*<br>\s*)+/gi, "<br>")
+      .trim();
+    descInner = cleaned;
+  }
+
+  const startFormatted = formatGermanDateTime(startDateIso);
+  const hasStart = !!startFormatted;
+  const hasDuration = !!(duration && duration.trim());
+  let startLine = "";
+
+  if (hasStart && hasDuration) {
+    startLine = `Der Kurs beginnt am ${escapeHtml(startFormatted!)} und hat ${escapeHtml(duration.trim())}.`;
+  } else if (hasStart) {
+    startLine = `Der Kurs beginnt am ${escapeHtml(startFormatted!)}.`;
+  } else if (hasDuration) {
+    startLine = `Der Kurs hat ${escapeHtml(duration.trim())}.`;
+  } else {
+    startLine = `Details zum Starttermin folgen.`;
+  }
+
+  const safeHref = escapeHtml(courseDetailUrl);
+
+  // Assemble required structure
+  const p1 = `<p>${descInner}</p>`;
+  const p2 = `<p>${startLine}</p>`;
+  const p3 = `<p><a href="${safeHref}">alle Kursinfos</a></p>`;
+
+  return `<div>\n  ${p1}\n  ${p2}\n  ${p3}\n</div>`;
+}
+
+/**
  * Main fetcher with Next.js caching via fetchWithTimeout and directive
  */
 export async function fetchCourseDetails(courseId: string): Promise<CourseDetails> {
@@ -143,8 +276,8 @@ export async function fetchCourseDetails(courseId: string): Promise<CourseDetail
   const jsonld = findCourseJsonLd(html);
   const title = titleH1 || jsonld?.name || "";
 
-  // Description: from HTML paragraphs, not JSON-LD if possible
-  const description = extractDescription($);
+  // Description: extract from div.kw-kurs-info-text primarily, with fallbacks; simplified to <div>...</div>
+  const description = extractDescription($, jsonld);
 
   // Start info: from JSON-LD hasCourseInstance, else labeled fields
   let startIso: string | undefined;
@@ -207,15 +340,24 @@ export async function fetchCourseDetails(courseId: string): Promise<CourseDetail
     address: addressStr || "",
   };
 
+  const startValue = startIso || (schedule[0]?.startTime ?? "");
+  const summary = buildSummary(
+    description,
+    startValue,
+    duration || (numberOfDates ? `${numberOfDates} Termin${numberOfDates > 1 ? "e" : ""}` : ""),
+    url
+  );
+
   const result: CourseDetails = {
     id: courseId,
     title,
     description,
-    start: startIso || (schedule[0]?.startTime ?? ""),
+    start: startValue,
     duration,
     numberOfDates: numberOfDates || schedule.length || 0,
     schedule,
     location,
+    summary,
   };
 
   return CourseDetailsSchema.parse(result);
