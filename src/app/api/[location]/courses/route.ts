@@ -13,7 +13,7 @@ const handler = createNextHandler(
       const reqId = crypto.randomUUID();
       const log = withCategory(logger, 'api').child({ requestId: reqId, route: '/api/[location]/courses' });
       const end = startTimer();
-      log.info({ method: 'GET', locationParam: params.location, includeDetails: query?.includeDetails, batchSize: query?.batchSize }, 'Courses request received');
+      log.info({ method: 'GET', locationParam: params.location, includeDetails: query?.includeDetails }, 'Courses request received');
 
       try {
         const locationId = params.location?.toLowerCase();
@@ -45,7 +45,6 @@ const handler = createNextHandler(
 
         const result = await getCourses(locationId, {
           includeDetails: !!query?.includeDetails,
-          batchSize: query?.batchSize,
           concurrentBatches: false,
         });
 

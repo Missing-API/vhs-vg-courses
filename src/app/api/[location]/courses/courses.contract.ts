@@ -22,13 +22,6 @@ export const CoursesContract = c.router({
             if (typeof v === "string") return v.toLowerCase() === "true";
             return undefined;
           }),
-        batchSize: z
-          .union([z.string(), z.number()])
-          .optional()
-          .transform((v) => {
-            const n = typeof v === "number" ? v : Number(v);
-            return Number.isFinite(n) ? Math.max(1, Math.min(100, Math.floor(n))) : undefined;
-          }),
       })
       .optional(),
     responses: {

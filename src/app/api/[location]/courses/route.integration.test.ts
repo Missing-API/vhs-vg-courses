@@ -25,7 +25,7 @@ describe("/api/[location]/courses (integration)", () => {
 
   it("should accept includeDetails=true query without breaking response", async () => {
     try {
-      const response = await fetch(`${baseUrl}/api/anklam/courses?includeDetails=true&batchSize=5`);
+      const response = await fetch(`${baseUrl}/api/anklam/courses?includeDetails=true`);
       expect([200, 404, 500]).toContain(response.status);
       if (response.status === 200) {
         const body = await response.json();
