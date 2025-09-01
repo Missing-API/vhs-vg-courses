@@ -46,7 +46,9 @@
     "slugify": "^1.6.6",
     "swagger-ui-react": "^5.28.0",
     "typescript": "^5.9.2",
-    "zod": "^3.22.3"
+    "zod": "^3.22.3",
+    "pino": "^9.5.0",
+    "pino-pretty": "^11.3.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",

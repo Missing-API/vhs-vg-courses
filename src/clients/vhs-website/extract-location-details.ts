@@ -3,6 +3,8 @@
 import * as cheerio from "cheerio";
 import slugify from "slugify";
 import { fetchWithTimeout } from "./fetch-with-timeout";
+import logger from "@/logging/logger";
+import { withCategory, startTimer } from "@/logging/helpers";
 
 /**
  * Get detailed information for each location from
@@ -11,8 +13,11 @@ import { fetchWithTimeout } from "./fetch-with-timeout";
  */
 export async function extractLocationDetails(): Promise<Record<string, { address?: string }>> {
   const INSTITUTION_NAME = "Volkshochschule Vorpommern-Greifswald";
+  const log = withCategory(logger, 'locationProcessing');
+  const end = startTimer();
 
   const url = "https://www.vhs-vg.de/ihre-vhs/aussenstellenuebersicht";
+  log.debug({ operation: 'fetch', url }, 'Fetching location details page');
   const res = await fetchWithTimeout(url, { method: "GET" });
   const html = await res.text();
   const $ = cheerio.load(html);
@@ -20,8 +25,11 @@ export async function extractLocationDetails(): Promise<Record<string, { address
   const container = $("div.hauptseite_ohnestatus");
   const details: Record<string, { address?: string }> = {};
 
+  const cards = container.find(".card");
+  log.debug({ operation: 'parse', selector: '.card', count: cards.length }, 'Parsing location cards');
+
   // Find all cards within the container
-  container.find(".card").each((_, card) => {
+  cards.each((_, card) => {
     const $card = $(card);
     
     // Extract location name from h2
@@ -55,5 +63,7 @@ export async function extractLocationDetails(): Promise<Record<string, { address
     }
   });
 
+  const durationMs = end();
+  log.info({ operation: 'parse', locations: Object.keys(details).length, durationMs }, 'Extracted location details');
   return details;
 }

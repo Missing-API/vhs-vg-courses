@@ -3,6 +3,8 @@
 import * as cheerio from "cheerio";
 import slugify from "slugify";
 import { fetchWithTimeout } from "./fetch-with-timeout";
+import logger from "@/logging/logger";
+import { withCategory, startTimer } from "@/logging/helpers";
 
 /**
  * Parse VHS-VG search form at https://www.vhs-vg.de/kurse to extract location options.
@@ -12,8 +14,11 @@ import { fetchWithTimeout } from "./fetch-with-timeout";
 export async function extractLocationsFromSearchForm(): Promise<
   Array<{ id: string; name: string; count?: number }>
 > {
+  const log = withCategory(logger, 'locationProcessing');
+  const end = startTimer();
 
   const url = "https://www.vhs-vg.de/kurse";
+  log.debug({ operation: 'fetch', url }, 'Fetching search form');
   const res = await fetchWithTimeout(url, { method: "GET" });
   const html = await res.text();
   const $ = cheerio.load(html);
@@ -23,7 +28,9 @@ export async function extractLocationsFromSearchForm(): Promise<
   // Strategy: find inputs for katortfilter[] or labels that include that input,
   // fallback to find filter list around #kw-filter-ortvalues
   const selectorInputs = 'input[name="katortfilter[]"]';
-  $(selectorInputs).each((_, el) => {
+  const inputs = $(selectorInputs);
+  log.debug({ operation: 'parse', selector: selectorInputs, count: inputs.length }, 'Scanning location inputs');
+  inputs.each((_, el) => {
     const $input = $(el);
     const val = ($input.attr("value") || "").trim();
     if (!val || val === "__reset__") return;
@@ -61,7 +68,9 @@ export async function extractLocationsFromSearchForm(): Promise<
 
   // Fallback: if nothing found, try get filter values list
   if (entries.length === 0) {
-    $("#kw-filter-ortvalues li label").each((_, el) => {
+    const fallbackSelector = "#kw-filter-ortvalues li label";
+    log.debug({ operation: 'parse', selector: fallbackSelector }, 'Falling back to filter values list');
+    $(fallbackSelector).each((_, el) => {
       const txt = $(el).text().replace(/\s+/g, " ").trim();
       if (!txt) return;
       let count: number | undefined;
@@ -81,5 +90,7 @@ export async function extractLocationsFromSearchForm(): Promise<
   }
   const result = Array.from(map.values());
 
+  const durationMs = end();
+  log.info({ operation: 'parse', locations: result.length, durationMs }, 'Extracted locations from search form');
   return result;
 }
