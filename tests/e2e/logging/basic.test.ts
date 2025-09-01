@@ -4,6 +4,21 @@ import path from 'node:path';
 import { createLogger } from '@/logging/logger';
 import { withCategory } from '@/logging/helpers';
 
+async function waitForFile(filePath: string, maxWaitMs = 1000) {
+  const start = Date.now();
+  while (Date.now() - start < maxWaitMs) {
+    try {
+      if (fs.existsSync(filePath) && fs.readFileSync(filePath, 'utf8').trim().length > 0) {
+        return true;
+      }
+    } catch {
+      // File might not exist yet
+    }
+    await new Promise(resolve => setTimeout(resolve, 10));
+  }
+  return false;
+}
+
 describe('e2e/logging', () => {
   it('writes to file destination', async () => {
     const logFile = path.join(process.cwd(), 'tests', 'tmp', 'e2e-log.log');
@@ -14,7 +29,8 @@ describe('e2e/logging', () => {
 
     l.info({ test: 'ok' }, 'hello');
 
-    await new Promise((r) => setTimeout(r, 20));
+    const fileExists = await waitForFile(logFile);
+    expect(fileExists).toBe(true);
 
     const content = fs.readFileSync(logFile, 'utf8');
     expect(content.length).toBeGreaterThan(0);
