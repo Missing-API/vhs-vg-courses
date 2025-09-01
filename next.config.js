@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   serverExternalPackages: ['cheerio'],
+  experimental: {
+    useCache: true,
+  },
   env: {
     // Environment variables for caching
     CACHE_DURATION_TEASERS: '900', // 15 minutes

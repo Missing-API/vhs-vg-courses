@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+
+# Build outputs
+.next/
+dist/
+build/
+
+# Coverage reports
+coverage/
+
+# Logs
+*.log
+
+# Environment files
+.env*
+
+# Cache
+.cache/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Large data files
+*.csv
+*.json.gz
