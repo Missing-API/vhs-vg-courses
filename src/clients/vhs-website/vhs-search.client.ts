@@ -10,6 +10,7 @@ export { buildCourseSearchRequest, courseSearchHeaders } from "./build-course-se
 export { extractPaginationLinks } from "./extract-pagination-links";
 export { parseCourseResults } from "./parse-course-results";
 export { getCourses } from "./get-courses";
+
 // Course details
 export { fetchCourseDetails } from "./fetch-course-details";
 export {

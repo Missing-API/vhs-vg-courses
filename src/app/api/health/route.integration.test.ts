@@ -15,7 +15,7 @@ describe('/api/health (integration)', () => {
     // Cleanup if needed
   });
 
-  it('should respond to HTTP GET requests', async () => {
+  it('should respond to HTTP GET requests and include vhsWebsite service', async () => {
     try {
       const response = await fetch(`${baseUrl}/api/health`);
       
@@ -30,8 +30,10 @@ describe('/api/health (integration)', () => {
         name: packageJson.name,
         version: packageJson.version,
         description: packageJson.description,
-        services: [],
       });
+
+      expect(Array.isArray(body.services)).toBe(true);
+      expect(body.services.some((s: any) => s.name === 'vhsWebsite')).toBe(true);
     } catch (error) {
       // If the server is not running, skip this test
       console.warn('Integration test skipped - server not available:', error);
@@ -48,7 +50,7 @@ describe('/api/health (integration)', () => {
       
       const bodies = await Promise.all(responses.map(r => r.json()));
       
-      // All responses should be identical
+      // All responses should be identical in base fields
       bodies.forEach(body => {
         expect(body).toMatchObject({
           status: 200,
@@ -56,8 +58,8 @@ describe('/api/health (integration)', () => {
           name: packageJson.name,
           version: packageJson.version,
           description: packageJson.description,
-          services: [],
         });
+        expect(body.services.some((s: any) => s.name === 'vhsWebsite')).toBe(true);
       });
     } catch (error) {
       // If the server is not running, skip this test
