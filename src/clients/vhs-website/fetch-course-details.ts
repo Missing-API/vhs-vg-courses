@@ -96,13 +96,21 @@ function extractSchedule($: cheerio.CheerioAPI): CourseSession[] {
     return sessions;
   }
 
-  // Iterate over rows (skip header if present)
+  // Iterate over rows (skip header-only rows)
   table.find("tr").each((idx, tr) => {
     const row = $(tr);
-    // Skip header rows that contain th
-    if (row.find("th").length) return;
+    
+    // Skip header-only rows (rows that only contain th elements and no data)
+    const thElements = row.find("th");
+    const tdElements = row.find("td");
+    
+    // If this is a pure header row (only th, no td), skip it
+    if (thElements.length > 0 && tdElements.length === 0) {
+      return;
+    }
 
-    const cells = row.find("td").toArray().map((td) => $(td).text().replace(/\s+/g, " ").trim()).filter(Boolean);
+    // Extract text from td elements (data cells)
+    const cells = tdElements.toArray().map((td) => $(td).text().replace(/\s+/g, " ").trim()).filter(Boolean);
     if (!cells.length) return;
 
     // Join the row cells with separators so parseScheduleEntry can detect date/time/location
