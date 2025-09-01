@@ -5,4 +5,11 @@ export {
   extractLocationsFromSearchForm,
   extractLocationDetails,
   getLocations,
+  // Courses
+  extractSearchFormUrl,
+  buildCourseSearchRequest,
+  courseSearchHeaders,
+  extractPaginationLinks,
+  parseCourseResults,
+  getCourses,
 } from "./index";
