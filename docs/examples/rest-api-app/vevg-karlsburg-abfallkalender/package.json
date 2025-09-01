@@ -1,0 +1,56 @@
+{
+  "name": "vevg-karlsburg-abfallkalender",
+  "description": "API proxy for waste calendars of VEVG Karlsburg with some data optimization.",
+  "keywords": [
+    "next.js",
+    "api",
+    "ics",
+    "ical"
+  ],
+  "version": "2.1.7",
+  "license": "MIT",
+  "repository": "github:Missing-API/vevg-karlsburg-abfallkalender",
+  "homepage": "https://github.com/Missing-API/vevg-karlsburg-abfallkalender",
+  "bugs": {
+    "url": "https://github.com/Missing-API/vevg-karlsburg-abfallkalender/issues"
+  },
+  "contributors": [
+    {
+      "name": "Schafe vorm Fenster UG",
+      "email": "jan@schafe-vorm-fenster.de",
+      "url": "https://www.schafe-vorm-fenster.org/"
+    }
+  ],
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "engines": {
+    "node": "22.x"
+  },
+  "dependencies": {
+    "@schafevormfenster/data-text-mapper": "^0.1.0",
+    "cache-manager": "^4.1.0",
+    "cache-manager-mongoose": "^1.0.1",
+    "cheerio": "^1.0.0-rc.12",
+    "ics": "^2.27.0",
+    "isomorphic-fetch": "^3.0.0",
+    "lodash": "^4.17.21",
+    "mongoose": "^6.5.4",
+    "next": "^14.0.4",
+    "node-ical": "^0.17.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "slugify": "^1.6.6",
+    "underscore": "^1.12.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.2.47",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.0.4",
+    "typescript": "^5.3.3"
+  }
+}
