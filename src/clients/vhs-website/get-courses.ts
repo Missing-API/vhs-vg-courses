@@ -13,6 +13,8 @@ import { getLocations } from "./get-locations";
 import * as cheerio from "cheerio";
 import logger from "@/logging/logger";
 import { withCategory, startTimer } from "@/logging/helpers";
+import { VhsSessionManager } from "./vhs-session-manager";
+import { fetchWithTimeoutCookies } from "./fetch-with-timeout-cookies";
 
 /**
  * Get full course list for a specific location id (e.g., "anklam", "greifswald", "pasewalk").
@@ -58,11 +60,16 @@ export async function getCourses(locationId: string): Promise<CoursesResponse> {
   const body = buildCourseSearchRequest(locationName);
   const headers = courseSearchHeaders();
 
-  // 3) Fetch initial page (POST)
-  const initialRes = await fetchWithTimeout(formUrl, {
+  // 2a) Initialize a session manager
+  const session = new VhsSessionManager();
+
+  // 3) Fetch initial page (POST) using session-aware client
+  const initialRes = await fetchWithTimeoutCookies(formUrl, {
     method: "POST",
     headers,
     body,
+    useSession: true,
+    sessionManager: session,
   });
   const initialHtml = await initialRes.text();
 
@@ -70,9 +77,9 @@ export async function getCourses(locationId: string): Promise<CoursesResponse> {
   const pageLinks = extractPaginationLinks(initialHtml, baseHref);
   log.debug({ operation: 'courses.get', pages: pageLinks.length }, 'Extracted pagination links');
 
-  // 5) Fetch all pagination pages in parallel
+  // 5) Fetch all pagination pages in parallel with the same session
   const pageFetches = pageLinks.map((url) =>
-    fetchWithTimeout(url, { method: "GET" }).then((r) => r.text())
+    fetchWithTimeoutCookies(url, { method: "GET", useSession: true, sessionManager: session }).then((r) => r.text())
   );
 
   const pagesHtml = await Promise.all(pageFetches);
