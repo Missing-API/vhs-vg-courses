@@ -1,0 +1,20 @@
+{
+  "service": "vhs-vg-courses",
+  "categories": {
+    "vhsClient": {
+      "description": "VHS website client operations including HTTP requests and HTML parsing"
+    },
+    "courseProcessing": {
+      "description": "Course data parsing, normalization, and validation"
+    },
+    "locationProcessing": {
+      "description": "Location data extraction and enrichment"
+    },
+    "api": {
+      "description": "API endpoint request/response lifecycle"
+    },
+    "health": {
+      "description": "Health checks and external dependency probing"
+    }
+  }
+}

@@ -26,6 +26,23 @@ The service crawls course information from https://www.vhs-vg.de/ and provides s
 **Async Operations:** async/await and Promise.all  
 **Caching:** Vercel Edge Cache and Cron Jobs  
 **Testing:** Vitest for unit tests, Playwright for E2E/API tests  
+**Logging:** pino (structured logs with categories)  
+
+## Logging
+
+- Structured logger using pino with categories for:
+  - vhsClient (HTTP + HTML parsing)
+  - courseProcessing
+  - locationProcessing
+  - api
+  - health
+- Configurable via environment:
+  - LOG_LEVEL: debug | info | warn | error (default: info)
+  - LOG_FORMAT: json | pretty (default: json)
+  - LOG_DESTINATION: console | file (default: console)
+  - LOG_REQUEST_DETAILS: true | false (default: true)
+  - LOG_FILE_PATH: file path when LOG_DESTINATION=file
+- See docs/logging/logging-strategy.md and docs/logging/development-guide.md
 
 ## New: Course Retrieval by Location (VHS-VG)
 

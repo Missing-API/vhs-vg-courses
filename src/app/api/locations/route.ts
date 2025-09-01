@@ -1,6 +1,8 @@
 import { createNextHandler } from "@ts-rest/serverless/next";
 import { LocationsContract } from "./locations.contract";
 import { getLocations } from "@/clients/vhs-website/vhs-search.client";
+import logger from "@/logging/logger";
+import { withCategory, startTimer, errorToObject } from "@/logging/helpers";
 
 const ONE_DAY_SECONDS = 60 * 60 * 24;
 
@@ -8,6 +10,11 @@ const handler = createNextHandler(
   LocationsContract,
   {
     locations: async ({}, res: { responseHeaders: Headers }) => {
+      const reqId = crypto.randomUUID();
+      const log = withCategory(logger, 'api').child({ requestId: reqId, route: '/api/locations' });
+      const end = startTimer();
+      log.info({ method: 'GET' }, 'Locations request received');
+
       try {
         const locationsData = await getLocations();
 
@@ -16,6 +23,9 @@ const handler = createNextHandler(
           "Cache-Control",
           `public, max-age=${ONE_DAY_SECONDS}`
         );
+
+        const durationMs = end();
+        log.info({ status: 200, durationMs, count: locationsData.locations.length }, 'Locations response sent');
 
         return {
           status: 200,
@@ -26,6 +36,8 @@ const handler = createNextHandler(
           },
         };
       } catch (err) {
+        const durationMs = end();
+        log.error({ status: 500, durationMs, err: errorToObject(err) }, 'Locations handler error');
         const message =
           err instanceof Error ? err.message : "Unknown error fetching locations";
         return {

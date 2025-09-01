@@ -11,6 +11,8 @@ import { parseCourseResults } from "./parse-course-results";
 import { CoursesResponse, Course } from "./courses.schema";
 import { getLocations } from "./get-locations";
 import * as cheerio from "cheerio";
+import logger from "@/logging/logger";
+import { withCategory, startTimer } from "@/logging/helpers";
 
 /**
  * Get full course list for a specific location id (e.g., "anklam", "greifswald", "pasewalk").
@@ -25,23 +27,29 @@ import * as cheerio from "cheerio";
  *  8. Optionally validate count against filter count if present
  */
 export async function getCourses(locationId: string): Promise<CoursesResponse> {
+  const log = withCategory(logger, 'courseProcessing');
+  const end = startTimer();
+
   if (!locationId) {
+    log.error({ operation: 'courses.get', reason: 'missing_locationId' }, 'locationId is required');
     throw new Error("locationId is required");
   }
 
   // Resolve location name from our known list (validate id)
+  log.debug({ operation: 'courses.get', locationId }, 'Resolving location');
   const locs = await getLocations();
   const loc = locs.locations.find((l) => l.id === locationId);
   if (!loc) {
+    const known = locs.locations.map((l) => l.id).join(", ");
+    log.error({ operation: 'courses.get', locationId, known }, 'Unknown location id');
     throw new Error(
-      `Unknown location id '${locationId}'. Known ids: ${locs.locations
-        .map((l) => l.id)
-        .join(", ")}`
+      `Unknown location id '${locationId}'. Known ids: ${known}`
     );
   }
   const locationName = loc.name;
 
   // 1) Extract form URL
+  log.debug({ operation: 'courses.get', step: 'extract_form_url' }, 'Extracting search form URL');
   const formUrl = await extractSearchFormUrl();
   const base = new URL(formUrl);
   const baseHref = `${base.origin}/`;
@@ -60,6 +68,7 @@ export async function getCourses(locationId: string): Promise<CoursesResponse> {
 
   // 4) Extract pagination links (GET pages)
   const pageLinks = extractPaginationLinks(initialHtml, baseHref);
+  log.debug({ operation: 'courses.get', pages: pageLinks.length }, 'Extracted pagination links');
 
   // 5) Fetch all pagination pages in parallel
   const pageFetches = pageLinks.map((url) =>
@@ -94,7 +103,11 @@ export async function getCourses(locationId: string): Promise<CoursesResponse> {
     warnings.push(
       `Parsed ${courses.length} courses but filter shows ${expectedCount}.`
     );
+    log.warn({ operation: 'courses.get', expectedCount, parsedCount: courses.length, locationId }, 'Course count mismatch');
   }
+
+  const durationMs = end();
+  log.info({ operation: 'courses.get', locationId, count: courses.length, durationMs }, 'Fetched courses');
 
   return {
     courses,
