@@ -1,13 +1,8 @@
 import { createNextHandler } from "@ts-rest/serverless/next";
 import { HealthContract } from "./health.contract";
 import packageJson from "../../../../package.json" assert { type: "json" };
-<<<<<<< HEAD
-import { checkVhsWebsiteHealth } from "../../../clients/vhs-website/check-vhs-website-health";
-
-=======
 import { checkVhsWebsiteHealth } from "@/clients/vhs-website/check-vhs-website-health";
 import type { ServiceStatusSchema } from "@/rest/health.schema";
->>>>>>> 6524168 (Fix vhs website service health check.)
 
 const handler = createNextHandler(
   HealthContract,
