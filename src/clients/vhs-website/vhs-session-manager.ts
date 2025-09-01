@@ -22,7 +22,7 @@ export class VhsSessionManager {
   private lastUpdated = 0;
   private lockPromise: Promise<void> | null = null;
   private lockRelease: (() => void) | null = null;
-  private log = withCategory(logger, "vhsSession");
+  private log = withCategory(logger, "vhsClient");
 
   constructor(opts?: {
     sessionTimeoutMs?: number;
