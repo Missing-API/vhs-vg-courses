@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { fetchCourseDetails } from "./fetch-course-details";
+import { fetchCourseDetails, buildSummary } from "./fetch-course-details";
 import { extractJsonLd, findCourseJsonLd } from "./parse-json-ld";
 import { parseGermanDate, parseScheduleEntry, parseTimeRange } from "./parse-course-dates";
 
@@ -144,6 +144,8 @@ describe("fetchCourseDetails", () => {
     expect(details.title).toContain("telc");
     expect(details.location.name).toContain("VHS");
     expect(details.schedule.length).toBeGreaterThan(0);
+    // Summary should be present and contain link
+    expect(details.summary).toContain('<a href="https://www.vhs-vg.de/kurse/kurs/252P40405">alle Kursinfos</a>');
   });
 
   it("parses course without JSON-LD", async () => {
@@ -156,6 +158,32 @@ describe("fetchCourseDetails", () => {
     expect(details.title).toContain("Excel");
     expect(details.numberOfDates).toBe(5);
     expect(details.schedule.length).toBe(2);
+    expect(details.summary).toContain('<a href="https://www.vhs-vg.de/kurse/kurs/252A21003">alle Kursinfos</a>');
+  });
+
+  it("extracts and sanitizes description from kw-kurs-info-text", async () => {
+    const html = `
+    <html><body>
+      <h1>ABC</h1>
+      <div class="kw-kurs-info-text">
+        <p style="color:red">Hallo <strong>Welt</strong> & Co.</p>
+        <p><br></p>
+        <div>Weitere Infos<span style="display:none">x</span></div>
+        <ul><li>Punkt 1</li><li>Punkt 2</li></ul>
+      </div>
+      <dl>
+        <dt>Beginn:</dt><dd>Sa., 15.11.2025, um 09:00 Uhr</dd>
+        <dt>Dauer:</dt><dd>1 Termin</dd>
+      </dl>
+      <table id="kw-kurstage"><tbody><tr><td>15.11.2025</td><td>09:00 - 12:00 Uhr</td><td>VHS</td><td>Raum</td></tr></tbody></table>
+    </body></html>`;
+    vi.spyOn(fetchMod, "fetchWithTimeout").mockResolvedValue({
+      ok: true,
+      text: async () => html,
+    } as any);
+
+    const details = await fetchCourseDetails("252B00001");
+    expect(details.description).toBe("<div>Hallo Welt &amp; Co.<br>Weitere Infos<br>Punkt 1<br>Punkt 2</div>");
   });
 
   it("handles HTTP error", async () => {
@@ -165,5 +193,36 @@ describe("fetchCourseDetails", () => {
       throw err;
     });
     await expect(fetchCourseDetails("252A99999")).rejects.toBeTruthy();
+  });
+});
+
+describe("buildSummary", () => {
+  it("creates complete summary with all components and German date formatting", () => {
+    const description = "<div>Zeile 1<br>Zeile 2</div>";
+    const startIso = "2025-11-15T09:00:00+01:00";
+    const duration = "1 Termin";
+    const url = "https://www.vhs-vg.de/kurse/kurs/252P40405";
+    const summary = buildSummary(description, startIso, duration, url);
+
+    // Structure
+    expect(summary.startsWith("<div>")).toBe(true);
+    expect(summary.includes("<p>Zeile 1<br>Zeile 2</p>")).toBe(true);
+    expect(summary).toContain("Der Kurs beginnt am");
+    expect(summary).toContain("15.11.2025");
+    expect(summary).toContain("09:00 Uhr");
+    expect(summary).toContain("und hat 1 Termin.");
+    expect(summary).toContain('<a href="https://www.vhs-vg.de/kurse/kurs/252P40405">alle Kursinfos</a>');
+  });
+
+  it("degrades gracefully when date or duration missing", () => {
+    const url = "https://example.com";
+    const withOnlyDate = buildSummary("<div>Text</div>", "2025-11-15T09:00:00+01:00", "", url);
+    expect(withOnlyDate).toContain("Der Kurs beginnt am");
+
+    const withOnlyDuration = buildSummary("<div>Text</div>", "", "5 Termine", url);
+    expect(withOnlyDuration).toContain("Der Kurs hat 5 Termine.");
+
+    const withNone = buildSummary("<div>Text</div>", "", "", url);
+    expect(withNone).toContain("Details zum Starttermin folgen.");
   });
 });

@@ -23,6 +23,10 @@ export const CourseDetailsSchema = z.object({
     room: z.string().optional(),
     address: z.string(),
   }),
+  /**
+   * HTML summary combining description, start info, and detail link
+   */
+  summary: z.string().describe("HTML summary combining description, start info, and detail link"),
 });
 
 export type CourseDetails = z.infer<typeof CourseDetailsSchema>;
