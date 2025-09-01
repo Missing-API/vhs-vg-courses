@@ -12,6 +12,25 @@ export const CoursesContract = c.router({
     pathParams: z.object({
       location: z.string().min(1),
     }),
+    query: z
+      .object({
+        includeDetails: z
+          .union([z.string(), z.boolean()])
+          .optional()
+          .transform((v) => {
+            if (typeof v === "boolean") return v;
+            if (typeof v === "string") return v.toLowerCase() === "true";
+            return undefined;
+          }),
+        batchSize: z
+          .union([z.string(), z.number()])
+          .optional()
+          .transform((v) => {
+            const n = typeof v === "number" ? v : Number(v);
+            return Number.isFinite(n) ? Math.max(1, Math.min(100, Math.floor(n))) : undefined;
+          }),
+      })
+      .optional(),
     responses: {
       200: CoursesSuccessfulSchema,
       400: ApiErrorSchema,

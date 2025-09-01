@@ -2,6 +2,16 @@ import { z } from "zod";
 import { ResultsSchema } from "@/rest/results.schema";
 import { CourseSchema } from "@/clients/vhs-website/courses.schema";
 
+const CoursesMetaSchema = z
+  .object({
+    includeDetails: z.boolean().optional(),
+    detailsRequested: z.number().optional(),
+    detailsSucceeded: z.number().optional(),
+    detailsFailed: z.number().optional(),
+    cacheWarmingTriggered: z.boolean().optional(),
+  })
+  .optional();
+
 /**
  * Courses list data structure (array of courses)
  */

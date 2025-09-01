@@ -28,7 +28,13 @@ import { fetchWithTimeoutCookies } from "./fetch-with-timeout-cookies";
  *  7. Parse and de-duplicate courses
  *  8. Optionally validate count against filter count if present
  */
-export async function getCourses(locationId: string): Promise<CoursesResponse> {
+export interface GetCoursesOptions {
+  includeDetails?: boolean;
+  batchSize?: number;
+  concurrentBatches?: boolean; // when true, process batches in parallel
+}
+
+export async function getCourses(locationId: string, options?: GetCoursesOptions): Promise<CoursesResponse> {
   const log = withCategory(logger, 'courseProcessing');
   const end = startTimer();
 
@@ -113,14 +119,59 @@ export async function getCourses(locationId: string): Promise<CoursesResponse> {
     log.warn({ operation: 'courses.get', expectedCount, parsedCount: courses.length, locationId }, 'Course count mismatch');
   }
 
+  // 9) Cache warming and optional detail inclusion
+  const { warmCourseDetailsCache, fetchCourseDetailsBatch } = await import("./fetch-course-details-batch");
+  const { COURSE_DETAIL_CONFIG } = await import("./performance");
+
+  const ids = courses.map(c => c.id).filter((id) => /^[0-9]{3}[A-Z][0-9]{5}$/i.test(id));
+
+  // Fire-and-forget cache warming regardless of includeDetails
+  warmCourseDetailsCache(ids, { batchSize: COURSE_DETAIL_CONFIG.BATCH_SIZE });
+
+  let detailsRequested = 0;
+  let detailsSucceeded = 0;
+  let detailsFailed = 0;
+
+  if (options?.includeDetails) {
+    const batchSize = Math.min(options.batchSize || COURSE_DETAIL_CONFIG.BATCH_SIZE, COURSE_DETAIL_CONFIG.MAX_CONCURRENT_DETAILS);
+    detailsRequested = ids.length;
+
+    const concurrencyMode = options.concurrentBatches ? "parallel" : "sequential";
+    const batchResult = await fetchCourseDetailsBatch(ids, {
+      batchSize,
+      concurrency: concurrencyMode,
+      retryAttempts: COURSE_DETAIL_CONFIG.RETRY_ATTEMPTS,
+      retryDelayMs: COURSE_DETAIL_CONFIG.RETRY_DELAY_MS,
+    });
+
+    detailsSucceeded = batchResult.results.length;
+    detailsFailed = batchResult.errors.length;
+
+    // Merge details into courses by id
+    const byId = new Map(batchResult.results.map((d) => [d.id, d] as const));
+    for (const c of courses) {
+      const d = byId.get(c.id);
+      if (d) {
+        (c as any).details = d;
+      }
+    }
+  }
+
   const durationMs = end();
-  log.info({ operation: 'courses.get', locationId, count: courses.length, durationMs }, 'Fetched courses');
+  log.info({ operation: 'courses.get', locationId, count: courses.length, durationMs, includeDetails: !!options?.includeDetails, detailsRequested, detailsSucceeded, detailsFailed }, 'Fetched courses');
 
   return {
     courses,
     count: courses.length,
     expectedCount,
     warnings: warnings.length ? warnings : undefined,
+    meta: {
+      includeDetails: !!options?.includeDetails,
+      detailsRequested: detailsRequested || undefined,
+      detailsSucceeded: detailsSucceeded || undefined,
+      detailsFailed: detailsFailed || undefined,
+      cacheWarmingTriggered: true,
+    },
   };
 }
 

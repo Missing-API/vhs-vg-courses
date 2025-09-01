@@ -11,6 +11,11 @@ export { extractPaginationLinks } from "./extract-pagination-links";
 export { parseCourseResults } from "./parse-course-results";
 export { getCourses } from "./get-courses";
 
+// Batch processing
+export { processBatches } from "./batch-processor";
+export { fetchCourseDetailsBatch, warmCourseDetailsCache } from "./fetch-course-details-batch";
+export { COURSE_DETAIL_CONFIG, MAX_CONCURRENT_DETAILS } from "./performance";
+
 // Course details
 export { fetchCourseDetails } from "./fetch-course-details";
 export {
