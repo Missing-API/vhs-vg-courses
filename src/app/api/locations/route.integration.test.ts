@@ -15,8 +15,8 @@ describe("/api/locations (integration)", () => {
         const body = await response.json();
 
         expect(body).toHaveProperty("data");
-        expect(body.data).toHaveProperty("locations");
-        expect(Array.isArray(body.data.locations)).toBe(true);
+        expect(Array.isArray(body.data)).toBe(true);
+        expect(typeof body.results).toBe("number");
       }
     } catch (error) {
       // If the server is not running, skip this test
