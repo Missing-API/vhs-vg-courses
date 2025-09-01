@@ -12,7 +12,9 @@
  *
  * The function returns a URL-encoded string suitable for fetch() body.
  */
-export function buildCourseSearchRequest(locationName: string): string {
+export function buildCourseSearchRequest(locationName: string): string;
+export function buildCourseSearchRequest(locationName: string, _opts?: { /* reserved for future session support */ }): string;
+export function buildCourseSearchRequest(locationName: string, _opts?: { }): string {
   if (!locationName) {
     throw new Error("Location name is required to build course search request");
   }
