@@ -124,18 +124,12 @@ describe("checkVhsWebsiteHealth", () => {
   });
 
   it("returns unhealthy on timeout", async () => {
-    // Never resolve to trigger AbortError from fetchWithTimeout
+    // Mock fetch to reject with AbortError after a delay
     (global as any).fetch = vi.fn().mockImplementation(
-      () =>
-        new Promise(() => {
-          // no resolve
-        })
+      () => Promise.reject(new Error("AbortError"))
     );
 
-    const promise = checkVhsWebsiteHealth(5); // 5ms timeout
-    await vi.advanceTimersByTimeAsync(10);
-
-    const result = await promise;
+    const result = await checkVhsWebsiteHealth(5); // 5ms timeout
     expect(result.status).toBe("unhealthy");
     expect(result.statusCode).toBeNull();
     expect(result.message).toMatch(/timeout/i);

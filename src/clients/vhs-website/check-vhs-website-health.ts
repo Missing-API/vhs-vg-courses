@@ -28,20 +28,47 @@ export async function checkVhsWebsiteHealth(timeoutMs: number = DEFAULT_TIMEOUT_
     const statusCode = headRes.status;
 
     // If HEAD is ok and fast, we can consider healthy without fetching body
-    if (headRes.ok) {
-      const status: VhsWebsiteHealthStatus["status"] =
-        responseTime <= 10000 ? "healthy" : "degraded";
+    const status: VhsWebsiteHealthStatus["status"] =
+      responseTime <= 10000 ? "healthy" : "degraded";
 
+    return {
+      status,
+      responseTime,
+      statusCode,
+      message: status === "healthy" ? "VHS website is accessible" : "VHS website is slow but reachable",
+      timestamp,
+    };
+  } catch (e: any) {
+    const responseTime = Date.now() - start;
+    
+    // Check if this is an HTTP error (includes status code) or network/timeout error
+    const httpErrorMatch = e?.message?.match(/HTTP (\d+)/);
+    if (httpErrorMatch) {
+      const statusCode = parseInt(httpErrorMatch[1], 10);
       return {
-        status,
+        status: "unhealthy",
         responseTime,
         statusCode,
-        message: status === "healthy" ? "VHS website is accessible" : "VHS website is slow but reachable",
+        message: `HTTP ${statusCode} from VHS website`,
         timestamp,
       };
     }
-  } catch (e: any) {
-    // Some servers may reject HEAD; fall through to GET for a definitive check
+    
+    // Check if this is a timeout/abort error
+    const isAbort = e?.name === "AbortError" || 
+                    /aborted/i.test(String(e?.message || "")) ||
+                    /aborterror/i.test(String(e?.message || ""));
+    if (isAbort) {
+      return {
+        status: "unhealthy",
+        responseTime,
+        statusCode: null,
+        message: "Timeout while connecting to VHS website",
+        timestamp,
+      };
+    }
+    
+    // Network/other error - fall through to GET for a definitive check
   }
 
   // Fallback to GET with minimal validation
@@ -72,23 +99,10 @@ export async function checkVhsWebsiteHealth(timeoutMs: number = DEFAULT_TIMEOUT_
       /<body[^>]*>/i.test(body);
 
     // Determine status
-    if (res.ok && hasHtml) {
-      const status: VhsWebsiteHealthStatus["status"] =
-        responseTime <= 10000 ? "healthy" : "degraded";
+    const status: VhsWebsiteHealthStatus["status"] =
+      responseTime <= 10000 ? "healthy" : "degraded";
 
-      return {
-        status,
-        responseTime,
-        statusCode,
-        message:
-          status === "healthy"
-            ? "VHS website is accessible"
-            : "VHS website is slow but reachable",
-        timestamp,
-      };
-    }
-
-    if (res.ok && !hasHtml) {
+    if (!hasHtml) {
       return {
         status: "degraded",
         responseTime,
@@ -99,15 +113,35 @@ export async function checkVhsWebsiteHealth(timeoutMs: number = DEFAULT_TIMEOUT_
     }
 
     return {
-      status: "unhealthy",
+      status,
       responseTime,
       statusCode,
-      message: `HTTP ${statusCode} from VHS website`,
+      message:
+        status === "healthy"
+          ? "VHS website is accessible"
+          : "VHS website is slow but reachable",
       timestamp,
     };
   } catch (error: any) {
     const responseTime = Date.now() - start;
-    const isAbort = error?.name === "AbortError" || /aborted/i.test(String(error?.message || ""));
+    
+    // Check if this is an HTTP error (includes status code) or network/timeout error
+    const httpErrorMatch = error?.message?.match(/HTTP (\d+)/);
+    if (httpErrorMatch) {
+      const statusCode = parseInt(httpErrorMatch[1], 10);
+      return {
+        status: "unhealthy",
+        responseTime,
+        statusCode,
+        message: `HTTP ${statusCode} from VHS website`,
+        timestamp,
+      };
+    }
+    
+    // This is a network/timeout error
+    const isAbort = error?.name === "AbortError" || 
+                    /aborted/i.test(String(error?.message || "")) ||
+                    /aborterror/i.test(String(error?.message || ""));
     const message = isAbort
       ? "Timeout while connecting to VHS website"
       : `Network error while connecting to VHS website: ${error?.message || "unknown error"}`;
