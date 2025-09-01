@@ -1,5 +1,3 @@
-"use cache";
-
 import * as cheerio from "cheerio";
 import { fetchWithTimeout } from "./fetch-with-timeout";
 import { CourseDetailsSchema, type CourseDetails, type CourseSession } from "./course-details.schema";
@@ -66,6 +64,41 @@ function simplifyHtmlToDiv(fragmentHtml: string): string {
 }
 
 /**
+ * Extract text content from a cheerio element while preserving line breaks.
+ * Returns simplified HTML (<div> ... <br> ... </div>) as string.
+ */
+function simplifyContentToDiv(element: cheerio.Cheerio<any>): string {
+  // Remove hidden elements first
+  const cleanElement = element.clone();
+  cleanElement.find('[style*="display:none"], [style*="display: none"]').remove();
+  cleanElement.find('script, style').remove();
+  
+  const textParts: string[] = [];
+  
+  // Extract text from different types of elements
+  cleanElement.find('p, div, li').each((_, el) => {
+    const $el = cleanElement.find(el).first();
+    const text = $el.text().trim();
+    if (text) {
+      textParts.push(text);
+    }
+  });
+  
+  // If no structured content found, get the overall text
+  if (textParts.length === 0) {
+    const fullText = cleanElement.text().trim();
+    if (fullText) {
+      textParts.push(fullText);
+    }
+  }
+  
+  // Escape HTML entities in each text part and join with <br>
+  const escapedParts = textParts.map(part => escapeHtml(part));
+  
+  return `<div>${escapedParts.join('<br>')}</div>`;
+}
+
+/**
  * Extract description primarily from div.kw-kurs-info-text, with fallbacks.
  * Returns simplified HTML (<div> ... <br> ... </div>) as string.
  */
@@ -73,8 +106,8 @@ function extractDescription($: cheerio.CheerioAPI, jsonld?: { description?: stri
   // Primary: div.kw-kurs-info-text
   const info = $("div.kw-kurs-info-text").first();
   if (info.length) {
-    const raw = info.html() || "";
-    return simplifyHtmlToDiv(raw);
+    // Use text extraction to avoid double-escaping, then build our own structure
+    return simplifyContentToDiv(info);
   }
 
   // Secondary: JSON-LD description
@@ -120,7 +153,7 @@ function extractLabeledField($: cheerio.CheerioAPI, label: string): string | und
   // dt/dd
   $("dt, th, .label").each((_, el) => {
     const txt = $(el).text().replace(/\s+/g, " ").trim();
-    if (new RegExp(`^${label}\\s*:?, "i").test(txt)) {
+    if (new RegExp(`^${label}\\s*:?$`, "i").test(txt)) {
       const next = $(el).next();
       const val = next.text().replace(/\s+/g, " ").trim();
       if (val) candidates.push(val);
@@ -264,6 +297,7 @@ export function buildSummary(
  * Main fetcher with Next.js caching via fetchWithTimeout and directive
  */
 export async function fetchCourseDetails(courseId: string): Promise<CourseDetails> {
+  "use cache";
   validateCourseId(courseId);
 
   const url = buildCourseUrl(courseId);

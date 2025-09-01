@@ -13,12 +13,20 @@ function pad(n: number) {
 }
 
 /**
- * Parse German date like "Sa., 15.11.2025" or "Montag • 10.11.2025"
+ * Parse German date like "Sa., 15.11.2025" or "Montag • 10.11.2025" 
+ * or with time "Mo., 03.11.2025, um 17:00 Uhr"
  */
 export function parseGermanDate(dateString: string): Date {
-  const s = dateString
-    .normalize("NFKC")
-    .trim()
+  const normalized = dateString.normalize("NFKC").trim();
+  
+  // Extract time if present (e.g., "um 17:00 Uhr")
+  const timeMatch = normalized.match(/um\s+(\d{1,2}):(\d{2})\s*Uhr/i);
+  const hasTime = !!timeMatch;
+  const hour = hasTime ? Number(timeMatch![1]) : 0;
+  const minute = hasTime ? Number(timeMatch![2]) : 0;
+
+  // Clean the string to extract date only
+  const s = normalized
     .replace(/,\s*um .*/i, "")
     .replace(/\s*•\s*/g, " ")
     .replace(/[A-Za-zäöüÄÖÜß]+\.*\s*,?\s*/u, "") // remove weekday text at the start
@@ -33,7 +41,9 @@ export function parseGermanDate(dateString: string): Date {
     throw new Error(`Unable to parse German date: ${dateString}`);
   }
   const [_, dd, mm, yyyy] = m;
-  const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd), 0, 0, 0, 0);
+  
+  // Create date in local timezone with extracted time
+  const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd), hour, minute, 0, 0);
   return d;
 }
 
@@ -107,9 +117,10 @@ export function parseScheduleEntry(scheduleText: string): CourseSession {
     }
   }
 
-  const yyyy = start.getUTCFullYear();
-  const mm = pad(start.getUTCMonth() + 1);
-  const dd = pad(start.getUTCDate());
+  // Format date as YYYY-MM-DD in local timezone to avoid UTC shifts
+  const yyyy = start.getFullYear();
+  const mm = pad(start.getMonth() + 1);
+  const dd = pad(start.getDate());
   const dateIso = `${yyyy}-${mm}-${dd}`;
 
   return {

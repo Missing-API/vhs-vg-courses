@@ -31,6 +31,7 @@ describe("/api/courses/[id]", () => {
       room: "Raum 302",
       address: "Gemeindewiesenweg 8, 17309, Pasewalk",
     },
+    summary: "<div>Wenn Sie Ihre Deutschkenntnisse auf dem Niveau B2 nachweisen müssen...</div><p><strong>Start:</strong> Fr., 15. November 2025, um 09:00 Uhr</p><p><a href=\"https://www.vhs-vg.de/kurse/kurs/252P40405\">alle Kursinfos</a></p>",
   };
 
   beforeEach(() => {
