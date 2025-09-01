@@ -27,6 +27,32 @@ The service crawls course information from https://www.vhs-vg.de/ and provides s
 **Caching:** Vercel Edge Cache and Cron Jobs  
 **Testing:** Vitest for unit tests, Playwright for E2E/API tests  
 
+## New: Course Retrieval by Location (VHS-VG)
+
+The `vhs-website` client now supports retrieving full course lists per location, including pagination handling and default filters.
+
+Exports (from `src/clients/vhs-website`):
+- `getCourses(locationId)` – orchestrates the end-to-end flow for a location id (`anklam`, `greifswald`, `pasewalk`)
+- Schemas: `CourseSchema`, `CoursesResponseSchema`
+- Utilities:
+  - `extractSearchFormUrl()` – resolves POST form action from `/kurse`
+  - `buildCourseSearchRequest(locationName)` – builds POST body with default filters
+  - `extractPaginationLinks(html, base)` – collects all page URLs incl. `cHash`
+  - `parseCourseResults(html, base)` – parses the result table into structured objects
+
+Usage example:
+```ts
+import { getCourses } from "@/clients/vhs-website";
+
+const { courses, count, expectedCount, warnings } = await getCourses("anklam");
+```
+
+Notes:
+- Default filters applied: exclude started courses and fully booked courses.
+- Pagination pages are fetched in parallel via `Promise.all`.
+- Results are de-duplicated by course number.
+- If available, the parsed course count is compared against the location filter count displayed in the page.
+
 ## Architecture
 
 Built using the Facade pattern with three core components:
