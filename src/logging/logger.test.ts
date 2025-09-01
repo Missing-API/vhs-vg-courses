@@ -77,18 +77,12 @@ describe('logger/createLogger', () => {
     expect(lines.length).toBe(1);
     const obj = JSON.parse(lines[0]);
     
-    // Debug: log what we actually got
-    console.log('Actual log object:', JSON.stringify(obj, null, 2));
-    
-    // The service field might be under a different name, let's check for the correct structure
+    // Verify all expected fields are present
     expect(obj.level).toBe('info');
     expect(obj.category).toBe('vhsClient');
     expect(obj.operation).toBe('fetch');
     expect(obj.url).toBe('https://example.com');
     expect(typeof obj.durationMs).toBe('number');
-    
-    // Check if service is present (might be in base config)
-    expect(obj.service || obj.serviceName || SERVICE_NAME).toBeTruthy();
   });
 
   it('logs error objects', async () => {
