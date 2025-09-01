@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { fetchCourseDetails } from "./fetch-course-details";
 import { extractJsonLd, findCourseJsonLd } from "./parse-json-ld";
 import { parseGermanDate, parseScheduleEntry, parseTimeRange } from "./parse-course-dates";
