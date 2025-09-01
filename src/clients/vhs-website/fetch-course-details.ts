@@ -85,40 +85,28 @@ function extractLabeledField($: cheerio.CheerioAPI, label: string): string | und
 }
 
 /**
- * Parse detailed schedule entries from lists or tables
+ * Parse detailed schedule entries strictly from the schedule table
+ * The schedule should only be built based on the table with selector '#kw-kurstage'.
+ * Do not use any other containers (side blocks, generic lists, etc.).
  */
 function extractSchedule($: cheerio.CheerioAPI): CourseSession[] {
   const sessions: CourseSession[] = [];
-  const listSelectors = [
-    ".termine li",
-    ".schedule li",
-    ".course-dates li",
-    "ul li",
-  ];
-  for (const sel of listSelectors) {
-    $(sel).each((_, li) => {
-      const text = $(li).text().replace(/\s+/g, " ").trim();
-      if (/\d{1,2}\.\d{1,2}\.\d{4}/.test(text)) {
+
+  // Prefer explicit schedule table rows under #kw-kurstage
+  const table = $("#kw-kurstage").first();
+  if (table && table.length) {
+    table.find("tr").each((_, tr) => {
+      const rowText = $(tr).text().replace(/\s+/g, " ").trim();
+      if (/\d{1,2}\.\d{1,2}\.\d{4}/.test(rowText)) {
         try {
-          sessions.push(parseScheduleEntry(text));
+          sessions.push(parseScheduleEntry(rowText));
         } catch {
           // ignore entry parse errors
         }
       }
     });
-    if (sessions.length) break;
   }
-  // tables
-  if (!sessions.length) {
-    $("table tr").each((_, tr) => {
-      const rowText = $(tr).text().replace(/\s+/g, " ").trim();
-      if (/\d{1,2}\.\d{1,2}\.\d{4}/.test(rowText)) {
-        try {
-          sessions.push(parseScheduleEntry(rowText));
-        } catch {}
-      }
-    });
-  }
+
   return sessions;
 }
 
