@@ -34,10 +34,13 @@ describe("/api/locations", () => {
     expect(body).toHaveProperty("status");
     expect(body).toHaveProperty("timestamp");
     expect(body).toHaveProperty("data");
+    expect(body).toHaveProperty("results");
     expect(body.status).toBe(200);
-    expect(body.data.locations.length).toBe(3);
+    expect(body.results).toBe(3);
+    expect(Array.isArray(body.data)).toBe(true);
+    expect(body.data.length).toBe(3);
 
-    const ids = body.data.locations.map((l: any) => l.id).sort();
+    const ids = body.data.map((l: any) => l.id).sort();
     expect(ids).toEqual(["anklam", "greifswald", "pasewalk"].sort());
   });
 
@@ -47,10 +50,11 @@ describe("/api/locations", () => {
 
     expect(body).toHaveProperty("status");
     expect(body).toHaveProperty("timestamp");
+    expect(body).toHaveProperty("results");
+    expect(typeof body.results).toBe("number");
     expect(body).toHaveProperty("data");
-    expect(body.data).toHaveProperty("locations");
-    expect(Array.isArray(body.data.locations)).toBe(true);
-    body.data.locations.forEach((loc: any) => {
+    expect(Array.isArray(body.data)).toBe(true);
+    body.data.forEach((loc: any) => {
       expect(loc).toHaveProperty("id");
       expect(loc).toHaveProperty("name");
       expect(typeof loc.id).toBe("string");

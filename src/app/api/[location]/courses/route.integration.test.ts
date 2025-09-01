@@ -14,9 +14,8 @@ describe("/api/[location]/courses (integration)", () => {
       if (response.status === 200) {
         const body = await response.json();
         expect(body).toHaveProperty("data");
-        expect(body.data).toHaveProperty("courses");
-        expect(Array.isArray(body.data.courses)).toBe(true);
-        expect(body.data).toHaveProperty("location");
+        expect(Array.isArray(body.data)).toBe(true);
+        expect(typeof body.results).toBe("number");
       }
     } catch (error) {
       console.warn("Integration test skipped - server not available:", error);

@@ -1,22 +1,18 @@
 import { z } from "zod";
-import { ResultSchema } from "@/rest/result.schema";
+import { ResultsSchema } from "@/rest/results.schema";
 import { CourseSchema } from "@/clients/vhs-website/courses.schema";
-import { LocationSchema } from "@/clients/vhs-website/locations.schema";
 
 /**
- * Courses list data structure for a specific location
+ * Courses list data structure (array of courses)
  */
-export const CoursesDataSchema = z.object({
-  location: LocationSchema,
-  courses: z.array(CourseSchema),
-  totalCount: z.number(),
-});
+export const CoursesDataSchema = z.array(CourseSchema);
 export type CoursesData = z.infer<typeof CoursesDataSchema>;
 
 /**
- * Successful courses response following the example apps pattern
+ * Successful courses response for a collection
+ * - Uses ResultsSchema to include top-level results count
  */
-export const CoursesSuccessfulSchema = ResultSchema.extend({
+export const CoursesSuccessfulSchema = ResultsSchema.extend({
   data: CoursesDataSchema,
 });
 export type CoursesSuccessful = z.infer<typeof CoursesSuccessfulSchema>;

@@ -59,11 +59,8 @@ const handler = createNextHandler(
           body: {
             status: 200,
             timestamp: new Date().toISOString(),
-            data: {
-              location,
-              courses: result.courses,
-              totalCount: result.count,
-            },
+            results: result.count,
+            data: result.courses,
           },
         };
       } catch (err) {

@@ -64,11 +64,12 @@ describe("/api/[location]/courses", () => {
     const body = await response.json();
     expect(body).toHaveProperty("status");
     expect(body.status).toBe(200);
+    expect(body).toHaveProperty("timestamp");
+    expect(body).toHaveProperty("results");
+    expect(body.results).toBe(2);
     expect(body).toHaveProperty("data");
-    expect(body.data).toHaveProperty("location");
-    expect(body.data).toHaveProperty("courses");
-    expect(body.data.totalCount).toBe(2);
-    expect(Array.isArray(body.data.courses)).toBe(true);
+    expect(Array.isArray(body.data)).toBe(true);
+    expect(body.data.length).toBe(2);
 
     const cc = response.headers.get("cache-control");
     expect(cc).toContain("max-age=900");

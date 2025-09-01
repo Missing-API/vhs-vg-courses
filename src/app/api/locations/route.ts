@@ -17,6 +17,7 @@ const handler = createNextHandler(
 
       try {
         const locationsData = await getLocations();
+        const locationsArray = locationsData.locations;
 
         // 1 day cache as per API specification
         res.responseHeaders.set(
@@ -25,14 +26,15 @@ const handler = createNextHandler(
         );
 
         const durationMs = end();
-        log.info({ status: 200, durationMs, count: locationsData.locations.length }, 'Locations response sent');
+        log.info({ status: 200, durationMs, count: locationsArray.length }, 'Locations response sent');
 
         return {
           status: 200,
           body: {
             status: 200,
             timestamp: new Date().toISOString(),
-            data: locationsData,
+            results: locationsArray.length,
+            data: locationsArray,
           },
         };
       } catch (err) {
