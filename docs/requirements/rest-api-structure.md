@@ -45,16 +45,18 @@ This document defines the REST API structure for the VHS-VG Course Calendar API.
 **Response Format**:
 ```json
 {
-  "locations": [
-    {
-      "id": "pasewalk",
-      "name": "Pasewalk",
-      "address": "Am Markt 5, 17309 Pasewalk",
-    }
-  ],
-  "totalLocations": 3,
-  "totalCourses": 242,
-  "lastUpdated": "2025-08-29T10:30:00Z"
+  "status": 200,
+  "timestamp": "2025-08-29T10:30:00Z",
+  "data": {
+    "locations": [
+      {
+        "id": "pasewalk",
+        "name": "Pasewalk",
+        "address": "Am Markt 5, 17309 Pasewalk"
+      }
+    ],
+    "lastUpdated": "2025-08-29T10:30:00Z"
+  }
 }
 ```
 
