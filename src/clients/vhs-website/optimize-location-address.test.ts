@@ -71,6 +71,12 @@ describe("optimizeLocationAddress", () => {
     );
   });
 
+  it("maps Torgelow, Haus an der Schleuse", () => {
+    expect(optimizeLocationAddress("Torgelow, Haus an der Schleuse")).toBe(
+      "Haus an der Schleuse, Schleusenstraße 5b, 17358 Torgelow"
+    );
+  });
+
   it("maps Ueckermünde, Regionalschule, Gymnastikhalle", () => {
     expect(optimizeLocationAddress('Ueckermünde, Regionalschule, Gymnastikhalle')).toBe(
       'Gymnastikhalle, Regionale Schule "Ehm Welk", Goethestraße 3, 17373 Ueckermünde'
