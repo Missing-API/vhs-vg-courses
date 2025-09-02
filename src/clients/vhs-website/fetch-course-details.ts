@@ -155,7 +155,7 @@ function extractLabeledField($: cheerio.CheerioAPI, label: string): string | und
   // dt/dd
   $("dt, th, .label").each((_, el) => {
     const txt = $(el).text().replace(/\s+/g, " ").trim();
-    if (new RegExp(`^${label}\\s*:?, "i").test(txt)) {
+    if (new RegExp(`^${label}\\s*:?`, "i").test(txt)) {
       const next = $(el).next();
       const val = next.text().replace(/\s+/g, " ").trim();
       if (val) candidates.push(val);
