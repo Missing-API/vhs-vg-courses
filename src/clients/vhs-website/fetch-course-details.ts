@@ -292,7 +292,11 @@ export function buildSummary(
   const p2 = `<p>${startLine}</p>`;
   const p3 = `<p><a href="${safeHref}">alle Kursinfos</a></p>`;
 
-  return `<div>\n  ${p1}\n  ${p2}\n  ${p3}\n</div>`;
+  return `<div>
+  ${p1}
+  ${p2}
+  ${p3}
+</div>`;
 }
 
 /**
@@ -315,8 +319,9 @@ export async function fetchCourseDetails(courseId: string): Promise<CourseDetail
   // Description: extract from div.kw-kurs-info-text primarily, with fallbacks; simplified to <div>...</div>
   const description = extractDescription($, jsonld);
 
-  // Start info: from JSON-LD hasCourseInstance, else labeled fields
-  let startIso: string | undefined;
+  // Start info: collect from multiple sources and prefer the one with explicit time
+  let startFromJsonLd: string | undefined;
+  let startFromLabel: string | undefined;
   let venueName: string | undefined;
   let room: string | undefined;
   let addressStr: string | undefined;
@@ -326,7 +331,7 @@ export async function fetchCourseDetails(courseId: string): Promise<CourseDetail
     const first = instances.find((i) => i?.startDate) ?? instances[0];
     if (first?.startDate) {
       const d = new Date(first.startDate);
-      if (!isNaN(d.getTime())) startIso = d.toISOString();
+      if (!isNaN(d.getTime())) startFromJsonLd = d.toISOString();
     }
     const loc = first?.location;
     if (loc) {
@@ -339,14 +344,13 @@ export async function fetchCourseDetails(courseId: string): Promise<CourseDetail
     }
   }
 
-  if (!startIso) {
-    const beginn = extractLabeledField($, "Beginn");
-    if (beginn) {
-      try {
-        const d = parseGermanDate(beginn);
-        startIso = d.toISOString();
-      } catch {}
-    }
+  // Also parse labeled "Beginn" which often includes local time like "um 16:00 Uhr"
+  const beginn = extractLabeledField($, "Beginn");
+  if (beginn) {
+    try {
+      const d = parseGermanDate(beginn);
+      startFromLabel = d.toISOString();
+    } catch {}
   }
 
   // Duration and Termine
@@ -381,7 +385,13 @@ export async function fetchCourseDetails(courseId: string): Promise<CourseDetail
     address: addressOptimized || "",
   };
 
-  const startValue = startIso || (schedule[0]?.startTime ?? "");
+  // Prefer schedule start (has explicit time), then label "Beginn", then JSON-LD (may be date-only)
+  const startValue =
+    (schedule[0]?.startTime && schedule[0].startTime) ||
+    startFromLabel ||
+    startFromJsonLd ||
+    "";
+
   const summary = buildSummary(
     description,
     startValue,

@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { parseGermanDate } from "./parse-course-dates";
 
 describe("parseGermanDate timezone fix", () => {
-  it("should correctly parse German date with time", () => {
+  it("should correctly parse German date with time (CET, November)", () => {
     const dateString = "Mo., 03.11.2025, um 17:00 Uhr";
     const result = parseGermanDate(dateString);
     
@@ -17,6 +17,21 @@ describe("parseGermanDate timezone fix", () => {
     // So 17:00 local becomes 16:00 UTC
     const isoString = result.toISOString();
     expect(isoString).toBe("2025-11-03T16:00:00.000Z");
+  });
+
+  it("should correctly parse German date with time (CEST, September)", () => {
+    const dateString = "Mo., 08.09.2025, um 16:00 Uhr";
+    const result = parseGermanDate(dateString);
+
+    expect(result.getFullYear()).toBe(2025);
+    expect(result.getMonth()).toBe(8); // September
+    expect(result.getDate()).toBe(8);
+    expect(result.getHours()).toBe(16);
+    expect(result.getMinutes()).toBe(0);
+
+    // September in Berlin is CEST (UTC+2), so 16:00 local -> 14:00 UTC
+    const isoString = result.toISOString();
+    expect(isoString).toBe("2025-09-08T14:00:00.000Z");
   });
 
   it("should handle date without time", () => {

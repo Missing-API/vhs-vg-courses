@@ -102,6 +102,50 @@ const htmlWithoutJsonLd = `
 </body></html>
 `;
 
+// Case where JSON-LD has date only, but label/schedule include time
+const htmlJsonLdDateOnlyWithLabelTime = `
+<html><head>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Course",
+  "name": "Hatha Yoga - zertifizierter Kurs*",
+  "hasCourseInstance": {
+    "@type": "CourseInstance",
+    "startDate": "2025-09-08",
+    "endDate": "2025-11-24",
+    "location": {
+      "@type": "Place",
+      "name": "Torgelow, Haus an der Schleuse, Schleusenstraße 5B",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Torgelow",
+        "postalCode": "17358",
+        "streetAddress": "Schleusenstraße 5B"
+      }
+    }
+  }
+}
+</script>
+</head>
+<body>
+<h1>Hatha Yoga - zertifizierter Kurs*</h1>
+<div class="kw-kurs-info-text"><p>Beschreibung</p></div>
+<table id="kw-kurstage">
+  <tbody>
+    <tr>
+      <td>Montag • 08.09.2025 • 16:00 - 17:30 Uhr</td>
+      <td>Torgelow, Haus an der Schleuse</td>
+    </tr>
+  </tbody>
+</table>
+<dl>
+  <dt>Beginn</dt>
+  <dd><abbr title="Montag">Mo.</abbr>, 08.09.2025, <br> um 16:00 Uhr</dd>
+</dl>
+</body></html>
+`;
+
 describe("parse-json-ld helpers", () => {
   it("extracts and finds course JSON-LD", () => {
     const blocks = extractJsonLd(htmlWithJsonLd);
@@ -159,6 +203,17 @@ describe("fetchCourseDetails", () => {
     expect(details.numberOfDates).toBe(5);
     expect(details.schedule.length).toBe(2);
     expect(details.summary).toContain('<a href="https://www.vhs-vg.de/kurse/kurs/252A21003">alle Kursinfos</a>');
+  });
+
+  it("prefers schedule/label time over date-only JSON-LD", async () => {
+    vi.spyOn(fetchMod, "fetchWithTimeout").mockResolvedValue({
+      ok: true,
+      text: async () => htmlJsonLdDateOnlyWithLabelTime,
+    } as any);
+
+    const details = await fetchCourseDetails("252P30120");
+    // Start should reflect 16:00 local (CEST -> 14:00Z)
+    expect(details.start).toBe("2025-09-08T14:00:00.000Z");
   });
 
   it("extracts and sanitizes description from kw-kurs-info-text", async () => {
