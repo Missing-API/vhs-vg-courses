@@ -3,6 +3,7 @@ import { fetchWithTimeout } from "./fetch-with-timeout";
 import { CourseDetailsSchema, type CourseDetails, type CourseSession } from "./course-details.schema";
 import { findCourseJsonLd } from "./parse-json-ld";
 import { parseScheduleEntry, parseGermanDate } from "./parse-course-dates";
+import { optimizeLocationAddress } from "./optimize-location-address";
 
 /**
  * Validates a VHS course id (observed patterns like 252P40405, 252A21003)
@@ -28,7 +29,7 @@ function escapeHtml(s: string): string {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
+    .replace(/\"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
 
@@ -42,6 +43,7 @@ function simplifyHtmlToDiv(fragmentHtml: string): string {
   if (!fragmentHtml) return "<div></div>";
 
   // Convert obvious line break boundaries to \n
+
   let s = fragmentHtml
     .replace(/<\s*br\s*\/?>/gi, "\n")
     .replace(/<\/\s*(p|div|li|h[1-6])\s*>/gi, "\n")
@@ -153,7 +155,7 @@ function extractLabeledField($: cheerio.CheerioAPI, label: string): string | und
   // dt/dd
   $("dt, th, .label").each((_, el) => {
     const txt = $(el).text().replace(/\s+/g, " ").trim();
-    if (new RegExp(`^${label}\\s*:?$`, "i").test(txt)) {
+    if (new RegExp(`^${label}\\s*:?`, "i").test(txt)) {
       const next = $(el).next();
       const val = next.text().replace(/\s+/g, " ").trim();
       if (val) candidates.push(val);
@@ -368,10 +370,15 @@ export async function fetchCourseDetails(courseId: string): Promise<CourseDetail
   if (!room && schedule[0]?.room) room = schedule[0].room;
 
   // Location aggregate
+  let addressOptimized = addressStr || "";
+  if (!addressOptimized) {
+    const rawLoc = venueName || schedule[0]?.location || "";
+    addressOptimized = optimizeLocationAddress(rawLoc);
+  }
   const location = {
     name: venueName || "",
     room,
-    address: addressStr || "",
+    address: addressOptimized || "",
   };
 
   const startValue = startIso || (schedule[0]?.startTime ?? "");

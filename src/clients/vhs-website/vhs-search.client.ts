@@ -36,3 +36,6 @@ export {
   type Location,
   type LocationsResponse,
 } from "./locations.schema";
+
+// Address optimization
+export { optimizeLocationAddress } from "./optimize-location-address";
