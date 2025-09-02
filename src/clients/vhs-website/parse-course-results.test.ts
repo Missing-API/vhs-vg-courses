@@ -52,7 +52,7 @@ describe("parseCourseResults", () => {
     const first = courses[0];
     expect(first.id).toBe("252A40901");
     expect(first.title).toContain("Italienisch für Anfänger");
-    expect(first.location).toContain("VHS Anklam");
+    expect(first.locationText).toContain("VHS Anklam");
     expect(first.available).toBe(true); // 4 von 6 -> available
     expect(first.bookable).toBe(false);
     expect(first.detailUrl).toBe("https://www.vhs-vg.de/kurse/kurs/Italienisch-fuer-Anfaenger-A1A2-geringe-Vorkenntnisse-Modul-3/252A40901");
