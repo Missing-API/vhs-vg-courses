@@ -15,6 +15,7 @@ import logger from "@/logging/logger";
 import { withCategory, startTimer } from "@/logging/helpers";
 import { VhsSessionManager } from "./vhs-session-manager";
 import { fetchWithTimeoutCookies } from "./fetch-with-timeout-cookies";
+import { optimizeLocationAddress } from "./optimize-location-address";
 
 /**
  * Get full course list for a specific location id (e.g., "anklam", "greifswald", "pasewalk").
@@ -101,7 +102,13 @@ export async function getCourses(locationId: string): Promise<CoursesResponse> {
       dedupMap.set(key, c);
     }
   }
-  const courses = Array.from(dedupMap.values());
+  let courses = Array.from(dedupMap.values());
+
+  // 7b) Optimize addresses based on location context
+  courses = courses.map((c) => ({
+    ...c,
+    address: optimizeLocationAddress(c.locationText, { locationId }),
+  }));
 
   // 8) Validate count if possible by reading the filter label count
   const expectedCount = extractSelectedLocationCount(initialHtml, locationName);

@@ -108,6 +108,7 @@ export function parseCourseResults(html: string, baseHref: string): Course[] {
       detailUrl,
       start,
       locationText,
+      address: "", // filled by optimizer in get-courses
       available,
       bookable,
     });

@@ -7,6 +7,7 @@ export const CourseSchema = z.object({
   detailUrl: z.string(), // absolute URL to course detail
   start: ISO8601Schema, // ISO8601 start datetime
   locationText: z.string(), // as shown in table
+  address: z.string().default(""), // optimized postal address for Google Maps
   available: z.boolean(), // derived from "x von y"
   bookable: z.boolean(),
 });
