@@ -9,10 +9,11 @@ export { extractSearchFormUrl } from "./extract-search-form-url";
 export { buildCourseSearchRequest, courseSearchHeaders } from "./build-course-search-request";
 export { extractPaginationLinks } from "./extract-pagination-links";
 export { parseCourseResults } from "./parse-course-results";
-export { getCourses } from "./get-courses";
+export { getCourses, type GetCoursesOptions } from "./get-courses";
 
 // Course details
 export { fetchCourseDetails } from "./fetch-course-details";
+export { fetchCourseDetailsBatch, MAX_CONCURRENT_DETAILS } from "./fetch-course-details-batch";
 export {
   CourseDetailsSchema,
   CourseSessionSchema,

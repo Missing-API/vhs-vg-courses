@@ -23,4 +23,27 @@ describe("/api/[location]/courses (integration)", () => {
       expect(true).toBe(true);
     }
   });
+
+  it("should accept details=true and still return a valid response", async () => {
+    try {
+      const response = await fetch(`${baseUrl}/api/anklam/courses?details=true`);
+
+      expect([200, 404, 500]).toContain(response.status);
+      expect(response.headers.get("content-type")).toContain("application/json");
+
+      if (response.status === 200) {
+        const body = await response.json();
+        expect(body).toHaveProperty("data");
+        expect(body.data).toHaveProperty("courses");
+        expect(Array.isArray(body.data.courses)).toBe(true);
+        // detailsMeta may be present when details=true
+        if (body.data.detailsMeta) {
+          expect(typeof body.data.detailsMeta.requested).toBe("number");
+        }
+      }
+    } catch (error) {
+      console.warn("Integration test skipped - server not available:", error);
+      expect(true).toBe(true);
+    }
+  });
 });

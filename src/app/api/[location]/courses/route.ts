@@ -9,11 +9,11 @@ const FIFTEEN_MIN_SECONDS = 60 * 15;
 const handler = createNextHandler(
   CoursesContract,
   {
-    courses: async ({ params }, res: { responseHeaders: Headers }) => {
+    courses: async ({ params, query }, res: { responseHeaders: Headers }) => {
       const reqId = crypto.randomUUID();
       const log = withCategory(logger, 'api').child({ requestId: reqId, route: '/api/[location]/courses' });
       const end = startTimer();
-      log.info({ method: 'GET', locationParam: params.location }, 'Courses request received');
+      log.info({ method: 'GET', locationParam: params.location, query }, 'Courses request received');
 
       try {
         const locationId = params.location?.toLowerCase();
@@ -43,7 +43,8 @@ const handler = createNextHandler(
           };
         }
 
-        const result = await getCourses(locationId);
+        const includeDetails = !!query?.details;
+        const result = await getCourses(locationId, includeDetails ? { includeDetails } : undefined);
 
         // 15 minutes cache for course lists
         res.responseHeaders.set(
@@ -52,7 +53,7 @@ const handler = createNextHandler(
         );
 
         const durationMs = end();
-        log.info({ status: 200, durationMs, locationId, count: result.count }, 'Courses response sent');
+        log.info({ status: 200, durationMs, locationId, count: result.count, includeDetails }, 'Courses response sent');
 
         return {
           status: 200,
@@ -63,6 +64,8 @@ const handler = createNextHandler(
               location,
               courses: result.courses,
               totalCount: result.count,
+              detailsMeta: result.detailsMeta,
+              warnings: result.warnings,
             },
           },
         };

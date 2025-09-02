@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ResultSchema } from "@/rest/result.schema";
-import { CourseSchema } from "@/clients/vhs-website/courses.schema";
+import { CourseSchema, DetailsMetaSchema } from "@/clients/vhs-website/courses.schema";
 import { LocationSchema } from "@/clients/vhs-website/locations.schema";
 
 /**
@@ -10,6 +10,8 @@ export const CoursesDataSchema = z.object({
   location: LocationSchema,
   courses: z.array(CourseSchema),
   totalCount: z.number(),
+  detailsMeta: DetailsMetaSchema.optional(),
+  warnings: z.array(z.string()).optional(),
 });
 export type CoursesData = z.infer<typeof CoursesDataSchema>;
 
