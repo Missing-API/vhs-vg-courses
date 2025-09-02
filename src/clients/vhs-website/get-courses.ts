@@ -16,6 +16,13 @@ import { withCategory, startTimer } from "@/logging/helpers";
 import { VhsSessionManager } from "./vhs-session-manager";
 import { fetchWithTimeoutCookies } from "./fetch-with-timeout-cookies";
 import { optimizeLocationAddress } from "./optimize-location-address";
+import { fetchCourseDetailsBatch, MAX_CONCURRENT_DETAILS } from "./fetch-course-details-batch";
+
+export interface GetCoursesOptions {
+  includeDetails?: boolean;
+  batchSize?: number;
+  concurrentBatches?: boolean; // reserved for future use
+}
 
 /**
  * Get full course list for a specific location id (e.g., "anklam", "greifswald", "pasewalk").
@@ -28,8 +35,9 @@ import { optimizeLocationAddress } from "./optimize-location-address";
  *  6. Fetch all pages in parallel (including the first page content)
  *  7. Parse and de-duplicate courses
  *  8. Optionally validate count against filter count if present
+ *  9. Optionally fetch and merge course details in parallel with throttling
  */
-export async function getCourses(locationId: string): Promise<CoursesResponse> {
+export async function getCourses(locationId: string, options: GetCoursesOptions = {}): Promise<CoursesResponse> {
   const log = withCategory(logger, 'courseProcessing');
   const end = startTimer();
 
@@ -37,6 +45,9 @@ export async function getCourses(locationId: string): Promise<CoursesResponse> {
     log.error({ operation: 'courses.get', reason: 'missing_locationId' }, 'locationId is required');
     throw new Error("locationId is required");
   }
+
+  const includeDetails = !!options.includeDetails;
+  const detailsConcurrency = Math.min(options.batchSize || MAX_CONCURRENT_DETAILS, MAX_CONCURRENT_DETAILS);
 
   // Resolve location name from our known list (validate id)
   log.debug({ operation: 'courses.get', locationId }, 'Resolving location');
@@ -120,14 +131,67 @@ export async function getCourses(locationId: string): Promise<CoursesResponse> {
     log.warn({ operation: 'courses.get', expectedCount, parsedCount: courses.length, locationId }, 'Course count mismatch');
   }
 
+  let meta: CoursesResponse["meta"] = undefined;
+
+  // 9) Optionally fetch and merge details in parallel with throttling
+  if (includeDetails && courses.length) {
+    const extractId = (c: Course): string | undefined => {
+      if (c.id) return c.id;
+      const m = c.detailUrl?.match(/\/([0-9]{3}[A-Z][0-9]{5})$/i);
+      return m?.[1];
+    };
+
+    const courseIds = courses.map(extractId).filter((id): id is string => !!id);
+    const { detailsById, stats } = await fetchCourseDetailsBatch(courseIds, {
+      concurrency: detailsConcurrency,
+      batchSize: detailsConcurrency,
+    });
+
+    for (const c of courses) {
+      const id = extractId(c);
+      if (!id) continue;
+      const details = detailsById.get(id);
+      if (details) {
+        (c as any).details = details;
+      }
+    }
+
+    if (stats.failed) {
+      warnings.push(`Failed to fetch details for ${stats.failed} course(s).`);
+    }
+
+    meta = {
+      detailsRequested: true,
+      attempted: stats.attempted,
+      succeeded: stats.succeeded,
+      failed: stats.failed,
+      successRate: stats.successRate,
+      cacheHits: stats.cacheHits,
+      durationMs: stats.durationMs,
+      batchSize: detailsConcurrency,
+      concurrency: detailsConcurrency,
+      warnings: warnings.length ? warnings : undefined,
+    };
+  }
+
   const durationMs = end();
-  log.info({ operation: 'courses.get', locationId, count: courses.length, durationMs }, 'Fetched courses');
+  log.info(
+    {
+      operation: 'courses.get',
+      locationId,
+      count: courses.length,
+      durationMs,
+      details: includeDetails ? { attempted: meta?.attempted, succeeded: meta?.succeeded, failed: meta?.failed } : undefined,
+    },
+    'Fetched courses'
+  );
 
   return {
     courses,
     count: courses.length,
     expectedCount,
     warnings: warnings.length ? warnings : undefined,
+    meta,
   };
 }
 

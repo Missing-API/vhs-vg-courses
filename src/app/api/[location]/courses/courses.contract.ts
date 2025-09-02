@@ -12,6 +12,9 @@ export const CoursesContract = c.router({
     pathParams: z.object({
       location: z.string().min(1),
     }),
+    query: z.object({
+      details: z.coerce.boolean().optional(),
+    }).optional(),
     responses: {
       200: CoursesSuccessfulSchema,
       400: ApiErrorSchema,
