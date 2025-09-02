@@ -16,7 +16,7 @@ export interface CookieOptions {
 export async function fetchWithTimeoutCookies(
   url: string,
   init?: RequestInit & CookieOptions,
-  timeoutMs = 10000
+  timeoutMs = Number(process.env.VHS_REQUEST_TIMEOUT) || 10000
 ): Promise<Response> {
   const log = withCategory(logger, 'vhsClient');
   const end = startTimer();
