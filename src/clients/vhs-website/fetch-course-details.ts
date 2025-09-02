@@ -1,5 +1,7 @@
 import * as cheerio from "cheerio";
 import { fetchWithTimeout } from "./fetch-with-timeout";
+import { fetchWithTimeoutCookies } from "./fetch-with-timeout-cookies";
+import { VhsSessionManager } from "./vhs-session-manager";
 import { CourseDetailsSchema, type CourseDetails, type CourseSession } from "./course-details.schema";
 import { findCourseJsonLd } from "./parse-json-ld";
 import { parseScheduleEntry, parseGermanDate } from "./parse-course-dates";
@@ -302,12 +304,17 @@ export function buildSummary(
 /**
  * Main fetcher with Next.js caching via fetchWithTimeout and directive
  */
-export async function fetchCourseDetails(courseId: string): Promise<CourseDetails> {
+export async function fetchCourseDetails(
+  courseId: string,
+  opts?: { sessionManager?: VhsSessionManager }
+): Promise<CourseDetails> {
   "use cache";
   validateCourseId(courseId);
 
   const url = buildCourseUrl(courseId);
-  const res = await fetchWithTimeout(url, { method: "GET" });
+  const res = opts?.sessionManager
+    ? await fetchWithTimeoutCookies(url, { method: "GET", useSession: true, sessionManager: opts.sessionManager })
+    : await fetchWithTimeout(url, { method: "GET" });
   const html = await res.text();
   const $ = cheerio.load(html);
 

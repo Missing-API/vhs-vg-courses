@@ -94,6 +94,32 @@ export async function getCourses(locationId: string, options: GetCoursesOptions 
     fetchWithTimeoutCookies(url, { method: "GET", useSession: true, sessionManager: session }).then((r) => r.text())
   );
 
+  // 5a) Optional cache warming for details while other pages are being fetched
+  const cacheWarmingEnabled =
+    process.env.VHS_CACHE_WARMING_ENABLED === "1" || process.env.VHS_CACHE_WARMING_ENABLED === "true";
+  if (cacheWarmingEnabled) {
+    try {
+      const firstPageCourses = parseCourseResults(initialHtml, baseHref);
+      const extractIdWarm = (c: Course): string | undefined => {
+        if (c.id) return c.id;
+        const m = c.detailUrl?.match(/\/([0-9]{3}[A-Z][0-9]{5})$/i);
+        return m?.[1];
+      };
+      const warmIds = firstPageCourses.map(extractIdWarm).filter((id): id is string => !!id);
+      const warmLimit = Math.min(warmIds.length, Math.max(1, Math.min(MAX_CONCURRENT_DETAILS, 20)));
+      const warmBatchIds = warmIds.slice(0, warmLimit);
+
+      // Fire-and-forget warming with conservative concurrency
+      void fetchCourseDetailsBatch(warmBatchIds, {
+        concurrency: Math.min(10, MAX_CONCURRENT_DETAILS),
+        batchSize: Math.min(10, MAX_CONCURRENT_DETAILS),
+      }).catch(() => void 0);
+      log.debug({ operation: 'courses.get', warmCount: warmBatchIds.length }, 'Started cache warming for details');
+    } catch {
+      // ignore warming errors
+    }
+  }
+
   const pagesHtml = await Promise.all(pageFetches);
 
   // 6) Parse courses from all pages including the first page

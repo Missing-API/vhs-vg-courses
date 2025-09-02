@@ -14,8 +14,13 @@ export interface BatchOptions<T> {
   concurrency?: number;
   // Optional key to deduplicate within this run (for cache hit tracking)
   getKey?: (item: T) => string;
-  // Log function for progress
-  onBatchComplete?: (info: { batchIndex: number; settled: PromiseSettledResult<unknown>[]; durationMs: number }) => void;
+  // Progress callback for each batch. Can optionally suggest the next batchSize.
+  onBatchComplete?: (info: {
+    batchIndex: number;
+    settled: PromiseSettledResult<unknown>[];
+    durationMs: number;
+    batchSize: number;
+  }) => { nextBatchSize?: number } | void;
 }
 
 export async function processInBatches<T, R>(
@@ -25,7 +30,7 @@ export async function processInBatches<T, R>(
 ): Promise<{ results: (R | null)[]; errors: unknown[]; stats: BatchStats }> {
   const start = process.hrtime.bigint();
   const concurrency = Math.max(1, opts.concurrency || opts.batchSize || 20);
-  const batchSize = Math.max(1, opts.batchSize || concurrency);
+  let currentBatchSize = Math.max(1, opts.batchSize || concurrency);
   const getKey = opts.getKey;
 
   const dedupe = new Map<string, Promise<R>>();
@@ -35,8 +40,8 @@ export async function processInBatches<T, R>(
   const errors: unknown[] = [];
   let succeeded = 0;
 
-  for (let i = 0, bi = 0; i < items.length; i += batchSize, bi++) {
-    const batch = items.slice(i, i + batchSize);
+  for (let i = 0, bi = 0; i < items.length; i += currentBatchSize, bi++) {
+    const batch = items.slice(i, i + currentBatchSize);
 
     const promises = batch.map((item) => {
       const key = getKey ? getKey(item) : undefined;
@@ -57,7 +62,17 @@ export async function processInBatches<T, R>(
     const t1 = process.hrtime.bigint();
     const batchDurationMs = Math.round(Number(t1 - t0) / 1_000_000);
 
-    opts.onBatchComplete?.({ batchIndex: bi, settled, durationMs: batchDurationMs });
+    const feedback = opts.onBatchComplete?.({
+      batchIndex: bi,
+      settled,
+      durationMs: batchDurationMs,
+      batchSize: currentBatchSize,
+    });
+
+    if (feedback && typeof feedback.nextBatchSize === "number") {
+      // Clamp next batch size to [1, concurrency]
+      currentBatchSize = Math.max(1, Math.min(feedback.nextBatchSize, concurrency));
+    }
 
     for (const s of settled) {
       if (s.status === "fulfilled") {
