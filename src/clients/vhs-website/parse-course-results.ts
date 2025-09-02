@@ -57,9 +57,9 @@ export function parseCourseResults(html: string, baseHref: string): Course[] {
       (titleLink.attr("href") || $tr.attr("data-href") || "").trim();
     if (!title || !relHref) return;
 
-    let detailUrl: string;
+    let link: string;
     try {
-      detailUrl = new URL(relHref, baseHref).toString();
+      link = new URL(relHref, baseHref).toString();
     } catch {
       // If baseHref is malformed or relHref invalid, skip row
       return;
@@ -105,13 +105,12 @@ export function parseCourseResults(html: string, baseHref: string): Course[] {
     courses.push({
       id,
       title,
-      detailUrl,
+      link,
       start,
-      locationText: locationCell,
-      address: "", // filled by optimizer in get-courses
+      location: locationCell, // will be optimized later
       available,
       bookable,
-    });
+    } as Course);
   });
 
   return courses;
