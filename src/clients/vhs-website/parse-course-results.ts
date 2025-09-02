@@ -75,8 +75,8 @@ export function parseCourseResults(html: string, baseHref: string): Course[] {
     const start = parseStartIso(dateCellText);
     if (!start) return;
 
-    // Location text
-    const locationText = $tr
+    // Location cell text (fallback; will be replaced by details.location.address if details are fetched)
+    const locationCell = $tr
       .find('td[headers="kue-columnheader4"]')
       .text()
       .replace(/\s+/g, " ")
@@ -107,7 +107,7 @@ export function parseCourseResults(html: string, baseHref: string): Course[] {
       title,
       detailUrl,
       start,
-      locationText,
+      locationText: locationCell,
       address: "", // filled by optimizer in get-courses
       available,
       bookable,
