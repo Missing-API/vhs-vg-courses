@@ -30,8 +30,12 @@ describe("/api/[location]/courses", () => {
         title: "Course 1",
         detailUrl: "https://www.vhs-vg.de/kurse/kurs/course-1/252A001",
         start: "2025-09-01T10:00:00.000Z",
+<<<<<<< HEAD
         locationText: "Ort A",
         address: "",
+=======
+        location: "Ort A",
+>>>>>>> ab9dfb5 (refactor: rename locationText to location in course schema and tests)
         available: true,
         bookable: true,
       },
@@ -40,8 +44,12 @@ describe("/api/[location]/courses", () => {
         title: "Course 2",
         detailUrl: "https://www.vhs-vg.de/kurse/kurs/course-2/252A002",
         start: "2025-09-02T11:00:00.000Z",
+<<<<<<< HEAD
         locationText: "Ort B",
         address: "",
+=======
+        location: "Ort B",
+>>>>>>> ab9dfb5 (refactor: rename locationText to location in course schema and tests)
         available: true,
         bookable: false,
       },

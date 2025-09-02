@@ -152,7 +152,15 @@ export async function getCourses(locationId: string, options: GetCoursesOptions 
       if (!id) continue;
       const details = detailsById.get(id);
       if (details) {
-        (c as any).details = details;
+        // Flatten details into list item fields
+        if (details.start) {
+          c.start = details.start;
+        }
+        (c as any).summary = details.summary;
+        const addr = details.location?.address || "";
+        if (addr) {
+          (c as any).location = addr;
+        }
       }
     }
 
