@@ -3,11 +3,10 @@ import { withCategory, startTimer } from "@/logging/helpers";
 import { fetchCourseDetails } from "./fetch-course-details";
 import type { CourseDetails } from "./course-details.schema";
 import { processInBatches } from "./batch-processor";
-import { VhsSessionManager } from "./vhs-session-manager";
 
 export const MAX_CONCURRENT_DETAILS = Math.max(
   1,
-  Number(process.env.VHS_BATCH_SIZE) || 30
+  Number(process.env.VHS_BATCH_SIZE) || 10  // Moderate setting: not too high, not too low
 );
 
 export interface FetchCourseDetailsBatchOptions {
@@ -32,7 +31,6 @@ export async function fetchCourseDetailsBatch(
   courseIds: string[],
   options: FetchCourseDetailsBatchOptions = {}
 ): Promise<FetchCourseDetailsBatchResult> {
-  "use cache";
 
   const log = withCategory(logger, "courseProcessing");
   const end = startTimer();
@@ -40,25 +38,10 @@ export async function fetchCourseDetailsBatch(
   const maxConcurrent = Math.max(1, Math.min(options.concurrency || MAX_CONCURRENT_DETAILS, MAX_CONCURRENT_DETAILS));
   const initialBatchSize = Math.max(1, Math.min(options.batchSize || maxConcurrent, MAX_CONCURRENT_DETAILS));
 
-  // Build a small pool of independent sessions to improve parallel throughput and cookie isolation
-  const sessionPoolSize = Math.max(1, Number(process.env.VHS_MAX_CONCURRENT_SESSIONS) || 3);
-  const sessions = Array.from({ length: sessionPoolSize }, () => new VhsSessionManager());
-
-  const pickSession = (id: string) => {
-    let hash = 0;
-    for (let i = 0; i < id.length; i++) {
-      hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
-    }
-    const idx = hash % sessionPoolSize;
-    return sessions[idx]!;
-  };
-
   const { results, errors, stats } = await processInBatches<string, CourseDetails>(
     courseIds,
     async (id) => {
-      // Select session based on id for stable distribution
-      const session = pickSession(id);
-      return fetchCourseDetails(id, { sessionManager: session });
+      return fetchCourseDetails(id);
     },
     {
       concurrency: maxConcurrent,
@@ -128,7 +111,6 @@ export async function fetchCourseDetailsBatch(
       durationMs,
       maxConcurrent,
       initialBatchSize,
-      sessionPoolSize,
     },
     "Course details fetching summary"
   );
