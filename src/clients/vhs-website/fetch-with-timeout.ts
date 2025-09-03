@@ -5,19 +5,23 @@ import { withCategory, startTimer, errorToObject } from '@/logging/helpers';
  * Fetch helper with timeout and basic error surface
  * Uses Next.js fetch caching with 24-hour revalidation
  */
-export async function fetchWithTimeout(url: string, init?: RequestInit, timeoutMs = Number(process.env.VHS_REQUEST_TIMEOUT) || 10000) {
+export async function fetchWithTimeout(
+  url: string,
+  options: RequestInit = {},
+  timeoutMs: number = 20000
+): Promise<Response> {
   const log = withCategory(logger, 'vhsClient');
   const end = startTimer();
 
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
-  const method = init?.method || 'GET';
+  const method = options?.method || 'GET';
 
   log.debug({ operation: 'fetch', url, method, timeoutMs }, 'HTTP request start');
 
   try {
     const res = await fetch(url, { 
-      ...init, 
+      ...options, 
       signal: controller.signal,
       next: { revalidate: 86400 } // 24 hours in seconds
     });

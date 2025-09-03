@@ -4,10 +4,8 @@ import { fetchCourseDetails } from "./fetch-course-details";
 import type { CourseDetails } from "./course-details.schema";
 import { processInBatches } from "./batch-processor";
 
-export const MAX_CONCURRENT_DETAILS = Math.max(
-  1,
-  Number(process.env.VHS_BATCH_SIZE) || 10  // Moderate setting: not too high, not too low
-);
+export const MAX_RETRY_ATTEMPTS = 3;
+export const MAX_CONCURRENT_DETAILS = 5;
 
 export interface FetchCourseDetailsBatchOptions {
   concurrency?: number;
@@ -41,7 +39,35 @@ export async function fetchCourseDetailsBatch(
   const { results, errors, stats } = await processInBatches<string, CourseDetails>(
     courseIds,
     async (id) => {
-      return fetchCourseDetails(id);
+      // Retry logic with exponential backoff
+      let lastError: unknown;
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          if (attempt > 1) {
+            // Exponential backoff: wait 1s, 2s, 4s
+            const delay = Math.pow(2, attempt - 1) * 1000;
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+          
+          // Add a small random delay between requests to spread out load
+          const randomDelay = Math.random() * 200; // 0-200ms random delay
+          await new Promise(resolve => setTimeout(resolve, randomDelay));
+          
+          return await fetchCourseDetails(id);
+        } catch (error) {
+          lastError = error;
+          // Don't retry on validation errors (invalid course ID format)
+          if (error instanceof Error && error.message.includes('Invalid course id format')) {
+            throw error;
+          }
+          // On last attempt, throw the error
+          if (attempt === 3) {
+            throw error;
+          }
+          // Continue to next attempt for other errors (timeouts, network issues)
+        }
+      }
+      throw lastError;
     },
     {
       concurrency: maxConcurrent,
