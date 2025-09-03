@@ -295,17 +295,23 @@ export function buildSummary(
 
   const safeHref = escapeHtml(courseDetailUrl);
 
-  // Assemble required structure
-  const p1 = `<p>${descInner}</p>`;
+  // Assemble required structure with enhanced semantics and taxonomy
+  const p1 = `<p class="description">${descInner}</p>`;
   const p2 = `<p>${startLine}</p>`;
   const pBookable = options?.bookable ? `<p>Dieser Kurs ist online buchbar.</p>` : "";
-  const p3 = `<p><a href="${safeHref}">alle Kursinfos</a></p>`;
+  const p3 = `<p class="link"><a href="${safeHref}">alle Kursinfos</a></p>`;
+  const pTaxonomy = `<p class="taxonomy">
+    <span class="tag">#Bildung</span> 
+    <span class="tag">#Volkshochschule</span> 
+    <span class="scope">@Region</span>
+  </p>`;
 
   return `<div>
   ${p1}
   ${p2}
   ${pBookable}
   ${p3}
+  ${pTaxonomy}
 </div>`;
 }
 
