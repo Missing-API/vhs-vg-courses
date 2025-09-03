@@ -255,7 +255,8 @@ export function buildSummary(
   description: string,
   startDateIso: string,
   duration: string,
-  courseDetailUrl: string
+  courseDetailUrl: string,
+  options?: { bookable?: boolean }
 ): string {
   // Pull inner content of description's outer <div> (if present)
   let descInner = "";
@@ -265,8 +266,8 @@ export function buildSummary(
     // We only allow text and <br> from the cleaned description; ensure no attributes remain
     // Clean any stray tags except <br>
     const cleaned = inner
-      .replace(/<\s*(?!br\s*\/?)[^>]+>/gi, "")
-      .replace(/<\s*br\s*\/?>/gi, "<br>")
+      .replace(/\s*(?!br\s*\/?)[^>]+>/gi, "")
+      .replace(/\s*br\s*\/?>/gi, "<br>")
       .replace(/(\s*<br>\s*)+/gi, "<br>")
       .trim();
     descInner = cleaned;
@@ -292,11 +293,13 @@ export function buildSummary(
   // Assemble required structure
   const p1 = `<p>${descInner}</p>`;
   const p2 = `<p>${startLine}</p>`;
+  const pBookable = options?.bookable ? `<p>Dieser Kurs ist online buchbar.</p>` : "";
   const p3 = `<p><a href="${safeHref}">alle Kursinfos</a></p>`;
 
   return `<div>
   ${p1}
   ${p2}
+  ${pBookable}
   ${p3}
 </div>`;
 }
@@ -399,11 +402,15 @@ export async function fetchCourseDetails(
     startFromJsonLd ||
     "";
 
+  // Determine bookable status from detail page indicators (e.g., .ampelicon.buchbar)
+  const isBookable = $(".ampelicon.buchbar").length > 0;
+
   const summary = buildSummary(
     description,
     startValue,
     duration || (numberOfDates ? `${numberOfDates} Termin${numberOfDates > 1 ? "e" : ""}` : ""),
-    url
+    url,
+    { bookable: isBookable }
   );
 
   const result: CourseDetails = {
