@@ -36,6 +36,6 @@ describe("parse-course-dates utilities", () => {
     const s = parseScheduleEntry("Sa., 15.11.2025, um 09:00 Uhr • VHS in Pasewalk");
     expect(s.date).toBe("2025-11-15");
     expect(s.location).toContain("VHS in Pasewalk");
-    expect(new Date(s.endTime).getTime()).toBeGreaterThan(new Date(s.startTime).getTime());
+    expect(new Date(s.end).getTime()).toBeGreaterThan(new Date(s.start).getTime());
   });
 });
