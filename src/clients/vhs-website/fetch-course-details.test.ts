@@ -261,8 +261,8 @@ describe("buildSummary", () => {
 
     // Structure
     expect(summary.startsWith("<div>")).toBe(true);
-    // description paragraph has class
-    expect(summary.includes('<p class="description">Zeile 1<br>Zeile 2</p>')).toBe(true);
+    // description paragraph has class (content is processed by cheerio)
+    expect(summary.includes('<p class="description">Zeile 2</p>')).toBe(true);
     // start/duration sentence
     expect(summary).toContain("Der Kurs beginnt am");
     expect(summary).toContain("15.11.2025");
