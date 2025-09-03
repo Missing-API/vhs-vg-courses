@@ -257,7 +257,7 @@ describe("buildSummary", () => {
     const startIso = "2025-11-15T09:00:00+01:00";
     const duration = "1 Termin";
     const url = "https://www.vhs-vg.de/kurse/kurs/252P40405";
-    const summary = buildSummary(description, startIso, duration, url);
+    const summary = buildSummary(description, startIso, duration, url, true);
 
     // Structure
     expect(summary.startsWith("<div>")).toBe(true);
@@ -271,13 +271,13 @@ describe("buildSummary", () => {
 
   it("degrades gracefully when date or duration missing", () => {
     const url = "https://example.com";
-    const withOnlyDate = buildSummary("<div>Text</div>", "2025-11-15T09:00:00+01:00", "", url);
+    const withOnlyDate = buildSummary("<div>Text</div>", "2025-11-15T09:00:00+01:00", "", url, false);
     expect(withOnlyDate).toContain("Der Kurs beginnt am");
 
-    const withOnlyDuration = buildSummary("<div>Text</div>", "", "5 Termine", url);
+    const withOnlyDuration = buildSummary("<div>Text</div>", "", "5 Termine", url, false);
     expect(withOnlyDuration).toContain("Der Kurs hat 5 Termine.");
 
-    const withNone = buildSummary("<div>Text</div>", "", "", url);
+    const withNone = buildSummary("<div>Text</div>", "", "", url, false);
     expect(withNone).toContain("Details zum Starttermin folgen.");
   });
 });
