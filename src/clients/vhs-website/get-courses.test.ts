@@ -78,7 +78,7 @@ describe("getCourses", () => {
           {
             id: "252A001",
             title: "Course 1",
-            detailUrl: "https://www.vhs-vg.de/kurse/kurs/course-1/252A001",
+            link: "https://www.vhs-vg.de/kurse/kurs/course-1/252A001",
             start: "2025-09-01T10:00:00.000Z",
             location: "Ort A",
             available: true,
@@ -91,7 +91,7 @@ describe("getCourses", () => {
           {
             id: "252A002",
             title: "Course 2",
-            detailUrl: "https://www.vhs-vg.de/kurse/kurs/course-2/252A002",
+            link: "https://www.vhs-vg.de/kurse/kurs/course-2/252A002",
             start: "2025-09-02T11:00:00.000Z",
             location: "Ort B",
             available: true,
@@ -104,7 +104,7 @@ describe("getCourses", () => {
         {
           id: "252A001",
           title: "Course 1",
-          detailUrl: "https://www.vhs-vg.de/kurse/kurs/course-1/252A001",
+          link: "https://www.vhs-vg.de/kurse/kurs/course-1/252A001",
           start: "2025-09-01T10:00:00.000Z",
           location: "Ort A",
           available: true,

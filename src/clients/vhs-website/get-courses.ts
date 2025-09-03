@@ -102,7 +102,7 @@ export async function getCourses(locationId: string, options: GetCoursesOptions 
       const firstPageCourses = parseCourseResults(initialHtml, baseHref);
       const extractIdWarm = (c: Course): string | undefined => {
         if (c.id) return c.id;
-        const m = c.detailUrl?.match(/\/([0-9]{3}[A-Z][0-9]{5})$/i);
+        const m = c.link?.match(/\/([0-9]{3}[A-Z][0-9]{5})$/i);
         return m?.[1];
       };
       const warmIds = firstPageCourses.map(extractIdWarm).filter((id): id is string => !!id);
@@ -131,10 +131,10 @@ export async function getCourses(locationId: string, options: GetCoursesOptions 
     allCourses.push(...parsed);
   }
 
-  // 7) Deduplicate by id or detailUrl
+  // 7) Deduplicate by id or link
   const dedupMap = new Map<string, Course>();
   for (const c of allCourses) {
-    const key = c.id || c.detailUrl;
+    const key = c.id || c.link;
     if (!dedupMap.has(key)) {
       dedupMap.set(key, c);
     }
@@ -144,7 +144,7 @@ export async function getCourses(locationId: string, options: GetCoursesOptions 
   // 7b) Optimize addresses based on location context
   courses = courses.map((c) => ({
     ...c,
-    address: optimizeLocationAddress(c.locationText, { locationId }),
+    location: optimizeLocationAddress(c.location || "", { locationId }),
   }));
 
   // 8) Validate count if possible by reading the filter label count
@@ -163,7 +163,7 @@ export async function getCourses(locationId: string, options: GetCoursesOptions 
   if (includeDetails && courses.length) {
     const extractId = (c: Course): string | undefined => {
       if (c.id) return c.id;
-      const m = c.detailUrl?.match(/\/([0-9]{3}[A-Z][0-9]{5})$/i);
+      const m = c.link?.match(/\/([0-9]{3}[A-Z][0-9]{5})$/i);
       return m?.[1];
     };
 
@@ -182,10 +182,10 @@ export async function getCourses(locationId: string, options: GetCoursesOptions 
         if (details.start) {
           c.start = details.start;
         }
-        (c as any).summary = details.summary;
+        c.summary = details.summary;
         const addr = details.location?.address || "";
         if (addr) {
-          (c as any).location = addr;
+          c.location = addr;
         }
       }
     }

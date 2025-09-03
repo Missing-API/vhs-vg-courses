@@ -5,12 +5,13 @@ import { CourseDetailsSchema } from "./course-details.schema";
 export const CourseSchema = z.object({
   id: z.string(), // course number if available
   title: z.string(),
-  detailUrl: z.string(), // absolute URL to course detail
+  link: z.string(), // absolute URL to course detail
   start: ISO8601Schema, // ISO8601 start datetime
-  locationText: z.string(), // as shown in table
-  address: z.string().default(""), // optimized postal address for Google Maps
+  location: z.string().default(""), // optimized postal address for Google Maps (or raw cell text if details not requested)
   available: z.boolean(), // derived from "x von y"
   bookable: z.boolean(),
+  // Optional HTML summary from course details; included when details=true
+  summary: z.string().describe("HTML summary content").optional(),
   // Optional full details (included when requested)
   details: CourseDetailsSchema.optional(),
 });
