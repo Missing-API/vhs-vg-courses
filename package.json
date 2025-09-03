@@ -8,6 +8,7 @@
     "dev": "next dev -p 9200",
     "build": "next build",
     "start": "next start",
+    "stop": "lsof -ti:9200 | xargs kill -9",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "test": "vitest run",

@@ -73,7 +73,7 @@ describe("fetchWithTimeout", () => {
     setTimeoutSpy.mockRestore();
   });
 
-  it("should use default timeout of 10 seconds", async () => {
+  it("should use default timeout of 8 seconds", async () => {
     // This test verifies the default timeout value is passed to setTimeout
     // We'll mock setTimeout to verify the timeout value
     const setTimeoutSpy = vi.spyOn(global, "setTimeout");
@@ -82,8 +82,8 @@ describe("fetchWithTimeout", () => {
 
     await fetchWithTimeout("https://example.com");
 
-    // Verify setTimeout was called with 20000ms (current default timeout)
-    expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 20000);
+    // Verify setTimeout was called with 8000ms (updated default timeout)
+    expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 8000);
     
     setTimeoutSpy.mockRestore();
   });

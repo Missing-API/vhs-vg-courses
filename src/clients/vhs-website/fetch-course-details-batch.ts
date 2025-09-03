@@ -5,7 +5,7 @@ import type { CourseDetails } from "./course-details.schema";
 import { processInBatches } from "./batch-processor";
 
 export const MAX_RETRY_ATTEMPTS = 3;
-export const MAX_CONCURRENT_DETAILS = 5;
+export const MAX_CONCURRENT_DETAILS = 40; // Increased from 25 to 40 for maximum parallelization
 
 export interface FetchCourseDetailsBatchOptions {
   concurrency?: number;
@@ -43,17 +43,17 @@ export async function fetchCourseDetailsBatch(
       let lastError: unknown;
       const courseUrl = `https://www.vhs-vg.de/kurse/kurs/${id}`;
       
-      for (let attempt = 1; attempt <= 3; attempt++) {
+      for (let attempt = 1; attempt <= 2; attempt++) { // Reduced from 3 to 2 attempts
         try {
           if (attempt > 1) {
-            // Exponential backoff: wait 1s, 2s, 4s
-            const delay = Math.pow(2, attempt - 1) * 1000;
+            // Faster retry: wait only 25ms on second attempt
+            const delay = 25;
             await new Promise(resolve => setTimeout(resolve, delay));
           }
           
-          // Add a small random delay between requests to spread out load
-          const randomDelay = Math.random() * 200; // 0-200ms random delay
-          await new Promise(resolve => setTimeout(resolve, randomDelay));
+          // Remove random delay for better performance - only used for retry backoff
+          // const randomDelay = Math.random() * 50; // 0-50ms random delay
+          // await new Promise(resolve => setTimeout(resolve, randomDelay));
           
           return await fetchCourseDetails(id);
         } catch (error) {
@@ -65,7 +65,7 @@ export async function fetchCourseDetailsBatch(
             courseId: id,
             courseUrl,
             attempt,
-            maxAttempts: 3
+            maxAttempts: 2
           };
           
           if (error instanceof Error) {
@@ -87,7 +87,7 @@ export async function fetchCourseDetailsBatch(
             }
           }
           
-          if (attempt === 3) {
+          if (attempt === 2) {
             log.error(errorInfo, `Failed to fetch course details after ${attempt} attempts`);
           } else {
             log.warn(errorInfo, `Course detail fetch attempt ${attempt} failed, retrying`);
@@ -98,7 +98,7 @@ export async function fetchCourseDetailsBatch(
             throw error;
           }
           // On last attempt, throw the error
-          if (attempt === 3) {
+          if (attempt === 2) {
             throw error;
           }
           // Continue to next attempt for other errors (timeouts, network issues)
@@ -116,14 +116,14 @@ export async function fetchCourseDetailsBatch(
         const errRate = settled.length ? fail / settled.length : 0;
         const perItemMs = settled.length ? Math.round(durationMs / settled.length) : durationMs;
 
-        // Simple adaptive strategy:
-        // - If error rate rises above 20% or items are slow (> 1200ms), reduce next batch by 25%
-        // - If error rate is 0 and items are fast (< 600ms), gently increase by 10% up to maxConcurrent
+        // Ultra-aggressive adaptive strategy for speed:
+        // - If error rate rises above 40% or items are extremely slow (> 3000ms), reduce batch by 25%
+        // - If error rate is low (<= 15%) and items are fast (< 2000ms), increase by 50% up to maxConcurrent
         let nextBatchSize = batchSize;
-        if (errRate > 0.2 || perItemMs > 1200) {
+        if (errRate > 0.4 || perItemMs > 3000) {
           nextBatchSize = Math.max(1, Math.floor(batchSize * 0.75));
-        } else if (errRate === 0 && perItemMs < 600 && batchSize < maxConcurrent) {
-          nextBatchSize = Math.min(maxConcurrent, Math.max(batchSize + 1, Math.ceil(batchSize * 1.1)));
+        } else if (errRate <= 0.15 && perItemMs < 2000 && batchSize < maxConcurrent) {
+          nextBatchSize = Math.min(maxConcurrent, Math.max(batchSize + 5, Math.ceil(batchSize * 1.5)));
         }
 
         log.debug(

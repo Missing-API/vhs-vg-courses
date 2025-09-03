@@ -8,7 +8,7 @@ import { withCategory, startTimer, errorToObject } from '@/logging/helpers';
 export async function fetchWithTimeout(
   url: string,
   options: RequestInit = {},
-  timeoutMs: number = 20000
+  timeoutMs: number = 8000 // Reduced from 10s to 8s for faster timeout detection
 ): Promise<Response> {
   const log = withCategory(logger, 'vhsClient');
   const end = startTimer();
@@ -23,7 +23,11 @@ export async function fetchWithTimeout(
     const res = await fetch(url, { 
       ...options, 
       signal: controller.signal,
-      next: { revalidate: 86400 } // 24 hours in seconds
+      next: { 
+        revalidate: 86400, // 24 hours in seconds
+        tags: ['vhs-courses'] // Optional: for manual cache invalidation
+      },
+      cache: 'force-cache' // Use cached response, revalidate in background when stale
     });
 
     const durationMs = end();

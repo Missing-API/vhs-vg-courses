@@ -29,8 +29,8 @@ export async function processInBatches<T, R>(
   opts: BatchOptions<T> = {}
 ): Promise<{ results: (R | null)[]; errors: unknown[]; stats: BatchStats }> {
   const start = process.hrtime.bigint();
-  const concurrency = Math.max(1, opts.concurrency || opts.batchSize || 20);
-  let currentBatchSize = Math.max(1, opts.batchSize || concurrency);
+  const concurrency = Math.max(1, opts.concurrency || opts.batchSize || 40);
+  let currentBatchSize = Math.max(1, opts.batchSize || Math.min(20, concurrency)); // Start with even higher initial batch (20)
   const getKey = opts.getKey;
 
   const dedupe = new Map<string, Promise<R>>();
