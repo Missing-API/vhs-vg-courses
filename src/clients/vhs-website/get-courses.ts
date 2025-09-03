@@ -195,7 +195,7 @@ export async function getCourses(locationId: string, options: GetCoursesOptions 
     // details could not be fetched. Build a minimal summary from the known list fields.
     for (const c of courses) {
       if (!c.summary) {
-        c.summary = buildSummary("<div></div>", c.start, "", c.link, c.bookable);
+        c.summary = buildSummary("<div></div>", c.start, "", c.link, { bookable: c.bookable });
       }
     }
 

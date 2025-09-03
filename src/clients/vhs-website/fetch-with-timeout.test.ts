@@ -82,8 +82,8 @@ describe("fetchWithTimeout", () => {
 
     await fetchWithTimeout("https://example.com");
 
-    // Verify setTimeout was called with 10000ms (default timeout)
-    expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 10000);
+    // Verify setTimeout was called with 20000ms (current default timeout)
+    expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 20000);
     
     setTimeoutSpy.mockRestore();
   });

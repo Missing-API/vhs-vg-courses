@@ -388,7 +388,7 @@ export async function fetchCourseDetails(
   // Location aggregate
   let addressOptimized = addressStr || "";
   if (!addressOptimized) {
-    const rawLoc = venueName || schedule[0]?.location || "";
+    const rawLoc = venueName || "";
     addressOptimized = optimizeLocationAddress(rawLoc);
   }
   const location = {

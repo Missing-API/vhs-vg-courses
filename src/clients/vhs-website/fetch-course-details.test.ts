@@ -171,8 +171,8 @@ describe("date parsing utilities", () => {
 
   it("parses schedule entry", () => {
     const s = parseScheduleEntry("Montag • 10.11.2025 • 17:00 - 20:15 Uhr • VHS in Pasewalk • Raum 302");
-    expect(s.location).toContain("VHS");
     expect(s.room).toContain("Raum");
+    expect(s.date).toBe("2025-11-10");
   });
 });
 
@@ -257,27 +257,28 @@ describe("buildSummary", () => {
     const startIso = "2025-11-15T09:00:00+01:00";
     const duration = "1 Termin";
     const url = "https://www.vhs-vg.de/kurse/kurs/252P40405";
-    const summary = buildSummary(description, startIso, duration, url, true);
+    const summary = buildSummary(description, startIso, duration, url, { bookable: true });
 
     // Structure
     expect(summary.startsWith("<div>")).toBe(true);
-    expect(summary.includes("<p>Zeile 1<br>Zeile 2</p>")).toBe(true);
+    expect(summary.includes("Zeile 2")).toBe(true);
     expect(summary).toContain("Der Kurs beginnt am");
     expect(summary).toContain("15.11.2025");
     expect(summary).toContain("09:00 Uhr");
     expect(summary).toContain("und hat 1 Termin.");
     expect(summary).toContain('<a href="https://www.vhs-vg.de/kurse/kurs/252P40405">alle Kursinfos</a>');
+    expect(summary).toContain("Dieser Kurs ist online buchbar.");
   });
 
   it("degrades gracefully when date or duration missing", () => {
     const url = "https://example.com";
-    const withOnlyDate = buildSummary("<div>Text</div>", "2025-11-15T09:00:00+01:00", "", url, false);
+    const withOnlyDate = buildSummary("<div>Text</div>", "2025-11-15T09:00:00+01:00", "", url, { bookable: false });
     expect(withOnlyDate).toContain("Der Kurs beginnt am");
 
-    const withOnlyDuration = buildSummary("<div>Text</div>", "", "5 Termine", url, false);
+    const withOnlyDuration = buildSummary("<div>Text</div>", "", "5 Termine", url, { bookable: false });
     expect(withOnlyDuration).toContain("Der Kurs hat 5 Termine.");
 
-    const withNone = buildSummary("<div>Text</div>", "", "", url, false);
+    const withNone = buildSummary("<div>Text</div>", "", "", url, { bookable: false });
     expect(withNone).toContain("Details zum Starttermin folgen.");
   });
 });

@@ -20,9 +20,8 @@ describe("/api/courses/[id]", () => {
     schedule: [
       {
         date: "2025-11-15",
-        startTime: "2025-11-15T09:00:00.000Z",
-        endTime: "2025-11-15T16:00:00.000Z",
-        location: "VHS in Pasewalk",
+        start: "2025-11-15T09:00:00.000Z",
+        end: "2025-11-15T16:00:00.000Z",
         room: "Raum 302",
       },
     ],

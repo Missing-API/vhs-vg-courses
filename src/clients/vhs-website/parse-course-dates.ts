@@ -104,16 +104,13 @@ export function parseScheduleEntry(scheduleText: string): CourseSession {
     }
   }
 
-  // Extract location and room if present in parts after time
-  let location = "";
+  // Extract room if present in parts after time
   let room: string | undefined;
   const timeIndex = parts.findIndex((p) => p === timePart);
   for (let i = timeIndex + 1; i < parts.length; i++) {
     const p = parts[i];
     if (/^raum\s+/i.test(p)) {
       room = p;
-    } else if (!location) {
-      location = p;
     }
   }
 
