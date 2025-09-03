@@ -1,4 +1,4 @@
-import ical, { ICalCalendar } from 'ical-generator';
+import ical, { ICalCalendar, ICalEventStatus, ICalCategoryData } from 'ical-generator';
 import type { Course } from './courses.schema';
 
 /**
@@ -90,7 +90,12 @@ export function generateCourseIcs(
     const html = c.summary || '';
     const plain = htmlToPlain(html);
     const categories = extractCategoriesFromSummary(html);
-    const status = c.available === false ? 'CANCELLED' : 'CONFIRMED';
+    const status: ICalEventStatus = c.available === false ? ICalEventStatus.CANCELLED : ICalEventStatus.CONFIRMED;
+    
+    // Convert string categories to ICalCategoryData format
+    const categoryData: ICalCategoryData[] = categories.length 
+      ? categories.map(cat => ({ name: cat }))
+      : [{ name: 'Bildung' }, { name: 'Volkshochschule' }];
 
     cal.createEvent({
       id: `VHSVG-${c.id}`,
@@ -104,7 +109,7 @@ export function generateCourseIcs(
       created: now,
       lastModified: now,
       status,
-      categories: categories.length ? categories : ['Bildung', 'Volkshochschule'],
+      categories: categoryData,
       // Ensure dates are treated as local times in Europe/Berlin context
       // ical-generator will include TZID from calendar timezone.
       floating: false,

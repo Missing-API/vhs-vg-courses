@@ -8,7 +8,7 @@ const FIFTEEN_MIN_SECONDS = 60 * 15;
 
 export async function GET(
   _req: NextRequest,
-  ctx: { params: { location?: string } }
+  ctx: { params: Promise<{ location?: string }> }
 ) {
   const reqId = crypto.randomUUID();
   const log = withCategory(logger, "api").child({
@@ -18,7 +18,8 @@ export async function GET(
   const end = startTimer();
 
   try {
-    const locationId = ctx.params.location?.toLowerCase();
+    const params = await ctx.params;
+    const locationId = params.location?.toLowerCase();
     if (!locationId) {
       const durationMs = end();
       log.warn({ status: 400, durationMs }, "Invalid location parameter");
