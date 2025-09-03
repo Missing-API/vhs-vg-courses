@@ -2,9 +2,8 @@ import { z } from "zod";
 
 export const CourseSessionSchema = z.object({
   date: z.string(), // ISO 8601 date (YYYY-MM-DD)
-  startTime: z.string(), // ISO 8601 datetime
-  endTime: z.string(), // ISO 8601 datetime
-  location: z.string(),
+  start: z.string(), // ISO 8601 datetime
+  end: z.string(), // ISO 8601 datetime
   room: z.string().optional(),
 });
 

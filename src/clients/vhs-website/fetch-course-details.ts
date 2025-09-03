@@ -377,7 +377,7 @@ export async function fetchCourseDetails(
   const schedule = extractSchedule($);
 
   // Infer venue/room from schedule entries if not present yet
-  if (!venueName && schedule.length) venueName = schedule[0].location || undefined;
+  if (!venueName && schedule.length) venueName = undefined;
   if (!room && schedule[0]?.room) room = schedule[0].room;
 
   // Location aggregate
@@ -394,7 +394,7 @@ export async function fetchCourseDetails(
 
   // Prefer schedule start (has explicit time), then label "Beginn", then JSON-LD (may be date-only)
   const startValue =
-    (schedule[0]?.startTime && schedule[0].startTime) ||
+    (schedule[0]?.start && schedule[0].start) ||
     startFromLabel ||
     startFromJsonLd ||
     "";
