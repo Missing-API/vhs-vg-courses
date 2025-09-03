@@ -261,13 +261,20 @@ describe("buildSummary", () => {
 
     // Structure
     expect(summary.startsWith("<div>")).toBe(true);
-    expect(summary.includes("Zeile 2")).toBe(true);
+    // description paragraph has class
+    expect(summary.includes('<p class="description">Zeile 1<br>Zeile 2</p>')).toBe(true);
+    // start/duration sentence
     expect(summary).toContain("Der Kurs beginnt am");
     expect(summary).toContain("15.11.2025");
     expect(summary).toContain("09:00 Uhr");
     expect(summary).toContain("und hat 1 Termin.");
-    expect(summary).toContain('<a href="https://www.vhs-vg.de/kurse/kurs/252P40405">alle Kursinfos</a>');
-    expect(summary).toContain("Dieser Kurs ist online buchbar.");
+    // link wrapped in paragraph with class
+    expect(summary).toContain('<p class="link"><a href="https://www.vhs-vg.de/kurse/kurs/252P40405">alle Kursinfos</a></p>');
+    // taxonomy metadata present
+    expect(summary).toContain('<p class="taxonomy">');
+    expect(summary).toContain('<span class="tag">#Bildung</span>');
+    expect(summary).toContain('<span class="tag">#Volkshochschule</span>');
+    expect(summary).toContain('<span class="scope">@Region</span>');
   });
 
   it("degrades gracefully when date or duration missing", () => {
