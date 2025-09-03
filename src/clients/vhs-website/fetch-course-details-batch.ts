@@ -41,6 +41,8 @@ export async function fetchCourseDetailsBatch(
     async (id) => {
       // Retry logic with exponential backoff
       let lastError: unknown;
+      const courseUrl = `https://www.vhs-vg.de/kurse/kurs/${id}`;
+      
       for (let attempt = 1; attempt <= 3; attempt++) {
         try {
           if (attempt > 1) {
@@ -56,6 +58,41 @@ export async function fetchCourseDetailsBatch(
           return await fetchCourseDetails(id);
         } catch (error) {
           lastError = error;
+          
+          // Log detailed error information for analysis
+          const errorInfo: any = {
+            operation: "course.detail.fetch.attempt",
+            courseId: id,
+            courseUrl,
+            attempt,
+            maxAttempts: 3
+          };
+          
+          if (error instanceof Error) {
+            errorInfo.errorMessage = error.message;
+            
+            // Extract HTTP status from error message if available
+            const statusMatch = error.message.match(/HTTP (\d+)/);
+            if (statusMatch) {
+              errorInfo.httpStatus = parseInt(statusMatch[1]);
+            }
+            
+            // Check for timeout errors
+            if (error.message.includes('aborted') || error.message.includes('timeout')) {
+              errorInfo.errorType = 'timeout';
+            } else if (error.message.includes('HTTP')) {
+              errorInfo.errorType = 'http_error';
+            } else {
+              errorInfo.errorType = 'other';
+            }
+          }
+          
+          if (attempt === 3) {
+            log.error(errorInfo, `Failed to fetch course details after ${attempt} attempts`);
+          } else {
+            log.warn(errorInfo, `Course detail fetch attempt ${attempt} failed, retrying`);
+          }
+          
           // Don't retry on validation errors (invalid course ID format)
           if (error instanceof Error && error.message.includes('Invalid course id format')) {
             throw error;
@@ -126,6 +163,47 @@ export async function fetchCourseDetailsBatch(
   const attempted = courseIds.length;
   const failed = attempted - succeeded;
   const successRate = attempted ? succeeded / attempted : 0;
+
+  // Analyze failure patterns
+  if (failed > 0) {
+    const failureAnalysis: any = {
+      operation: "courses.details.failure.analysis", 
+      totalFailed: failed,
+      failedCourses: []
+    };
+    
+    errorsDetailed.forEach(({ id, error }) => {
+      const courseInfo: any = {
+        courseId: id,
+        courseUrl: `https://www.vhs-vg.de/kurse/kurs/${id}`
+      };
+      
+      if (error instanceof Error) {
+        courseInfo.errorMessage = error.message;
+        
+        // Extract HTTP status from error message if available
+        const statusMatch = error.message.match(/HTTP (\d+)/);
+        if (statusMatch) {
+          courseInfo.httpStatus = parseInt(statusMatch[1]);
+        }
+        
+        // Categorize error type
+        if (error.message.includes('aborted') || error.message.includes('timeout')) {
+          courseInfo.errorType = 'timeout';
+        } else if (error.message.includes('HTTP')) {
+          courseInfo.errorType = 'http_error';
+        } else if (error.message.includes('Invalid course id format')) {
+          courseInfo.errorType = 'invalid_id';
+        } else {
+          courseInfo.errorType = 'other';
+        }
+      }
+      
+      failureAnalysis.failedCourses.push(courseInfo);
+    });
+    
+    log.warn(failureAnalysis, `Failed to fetch details for ${failed} course(s) - detailed analysis`);
+  }
 
   log.info(
     {

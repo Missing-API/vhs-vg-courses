@@ -6,10 +6,17 @@ import { parseScheduleEntry, parseGermanDate } from "./parse-course-dates";
 import { optimizeLocationAddress } from "./optimize-location-address";
 
 /**
- * Validates a VHS course id (observed patterns like 252P40405, 252A21003)
+ * Validates a VHS course id - accepts any non-empty string with reasonable characters
  */
 function validateCourseId(id: string) {
-  if (!/^[0-9]{3}[A-Z][0-9]{5}$/i.test(id)) {
+  // Allow any non-empty string that contains alphanumeric characters
+  // This covers patterns like: 252P40405, 252G404904, 252G50302D, 252G10505T, etc.
+  if (!id || typeof id !== 'string' || id.trim().length === 0) {
+    throw new Error(`Invalid course id format: ${id}`);
+  }
+  
+  // Basic sanity check - should contain at least some alphanumeric characters
+  if (!/[a-zA-Z0-9]/.test(id)) {
     throw new Error(`Invalid course id format: ${id}`);
   }
 }
