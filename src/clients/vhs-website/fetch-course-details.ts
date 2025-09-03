@@ -1,17 +1,22 @@
 import * as cheerio from "cheerio";
 import { fetchWithTimeout } from "./fetch-with-timeout";
-import { fetchWithTimeoutCookies } from "./fetch-with-timeout-cookies";
-import { VhsSessionManager } from "./vhs-session-manager";
 import { CourseDetailsSchema, type CourseDetails, type CourseSession } from "./course-details.schema";
 import { findCourseJsonLd } from "./parse-json-ld";
 import { parseScheduleEntry, parseGermanDate } from "./parse-course-dates";
 import { optimizeLocationAddress } from "./optimize-location-address";
 
 /**
- * Validates a VHS course id (observed patterns like 252P40405, 252A21003)
+ * Validates a VHS course id - accepts any non-empty string with reasonable characters
  */
 function validateCourseId(id: string) {
-  if (!/^[0-9]{3}[A-Z][0-9]{5}$/i.test(id)) {
+  // Allow any non-empty string that contains alphanumeric characters
+  // This covers patterns like: 252P40405, 252G404904, 252G50302D, 252G10505T, etc.
+  if (!id || typeof id !== 'string' || id.trim().length === 0) {
+    throw new Error(`Invalid course id format: ${id}`);
+  }
+  
+  // Basic sanity check - should contain at least some alphanumeric characters
+  if (!/[a-zA-Z0-9]/.test(id)) {
     throw new Error(`Invalid course id format: ${id}`);
   }
 }
@@ -308,16 +313,13 @@ export function buildSummary(
  * Main fetcher with Next.js caching via fetchWithTimeout and directive
  */
 export async function fetchCourseDetails(
-  courseId: string,
-  opts?: { sessionManager?: VhsSessionManager }
+  courseId: string
 ): Promise<CourseDetails> {
   "use cache";
   validateCourseId(courseId);
 
   const url = buildCourseUrl(courseId);
-  const res = opts?.sessionManager
-    ? await fetchWithTimeoutCookies(url, { method: "GET", useSession: true, sessionManager: opts.sessionManager })
-    : await fetchWithTimeout(url, { method: "GET" });
+  const res = await fetchWithTimeout(url, { method: "GET" });
   const html = await res.text();
   const $ = cheerio.load(html);
 

@@ -3,12 +3,9 @@ import { withCategory, startTimer } from "@/logging/helpers";
 import { fetchCourseDetails } from "./fetch-course-details";
 import type { CourseDetails } from "./course-details.schema";
 import { processInBatches } from "./batch-processor";
-import { VhsSessionManager } from "./vhs-session-manager";
 
-export const MAX_CONCURRENT_DETAILS = Math.max(
-  1,
-  Number(process.env.VHS_BATCH_SIZE) || 30
-);
+export const MAX_RETRY_ATTEMPTS = 3;
+export const MAX_CONCURRENT_DETAILS = 5;
 
 export interface FetchCourseDetailsBatchOptions {
   concurrency?: number;
@@ -32,7 +29,6 @@ export async function fetchCourseDetailsBatch(
   courseIds: string[],
   options: FetchCourseDetailsBatchOptions = {}
 ): Promise<FetchCourseDetailsBatchResult> {
-  "use cache";
 
   const log = withCategory(logger, "courseProcessing");
   const end = startTimer();
@@ -40,25 +36,75 @@ export async function fetchCourseDetailsBatch(
   const maxConcurrent = Math.max(1, Math.min(options.concurrency || MAX_CONCURRENT_DETAILS, MAX_CONCURRENT_DETAILS));
   const initialBatchSize = Math.max(1, Math.min(options.batchSize || maxConcurrent, MAX_CONCURRENT_DETAILS));
 
-  // Build a small pool of independent sessions to improve parallel throughput and cookie isolation
-  const sessionPoolSize = Math.max(1, Number(process.env.VHS_MAX_CONCURRENT_SESSIONS) || 3);
-  const sessions = Array.from({ length: sessionPoolSize }, () => new VhsSessionManager());
-
-  const pickSession = (id: string) => {
-    let hash = 0;
-    for (let i = 0; i < id.length; i++) {
-      hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
-    }
-    const idx = hash % sessionPoolSize;
-    return sessions[idx]!;
-  };
-
   const { results, errors, stats } = await processInBatches<string, CourseDetails>(
     courseIds,
     async (id) => {
-      // Select session based on id for stable distribution
-      const session = pickSession(id);
-      return fetchCourseDetails(id, { sessionManager: session });
+      // Retry logic with exponential backoff
+      let lastError: unknown;
+      const courseUrl = `https://www.vhs-vg.de/kurse/kurs/${id}`;
+      
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          if (attempt > 1) {
+            // Exponential backoff: wait 1s, 2s, 4s
+            const delay = Math.pow(2, attempt - 1) * 1000;
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+          
+          // Add a small random delay between requests to spread out load
+          const randomDelay = Math.random() * 200; // 0-200ms random delay
+          await new Promise(resolve => setTimeout(resolve, randomDelay));
+          
+          return await fetchCourseDetails(id);
+        } catch (error) {
+          lastError = error;
+          
+          // Log detailed error information for analysis
+          const errorInfo: any = {
+            operation: "course.detail.fetch.attempt",
+            courseId: id,
+            courseUrl,
+            attempt,
+            maxAttempts: 3
+          };
+          
+          if (error instanceof Error) {
+            errorInfo.errorMessage = error.message;
+            
+            // Extract HTTP status from error message if available
+            const statusMatch = error.message.match(/HTTP (\d+)/);
+            if (statusMatch) {
+              errorInfo.httpStatus = parseInt(statusMatch[1]);
+            }
+            
+            // Check for timeout errors
+            if (error.message.includes('aborted') || error.message.includes('timeout')) {
+              errorInfo.errorType = 'timeout';
+            } else if (error.message.includes('HTTP')) {
+              errorInfo.errorType = 'http_error';
+            } else {
+              errorInfo.errorType = 'other';
+            }
+          }
+          
+          if (attempt === 3) {
+            log.error(errorInfo, `Failed to fetch course details after ${attempt} attempts`);
+          } else {
+            log.warn(errorInfo, `Course detail fetch attempt ${attempt} failed, retrying`);
+          }
+          
+          // Don't retry on validation errors (invalid course ID format)
+          if (error instanceof Error && error.message.includes('Invalid course id format')) {
+            throw error;
+          }
+          // On last attempt, throw the error
+          if (attempt === 3) {
+            throw error;
+          }
+          // Continue to next attempt for other errors (timeouts, network issues)
+        }
+      }
+      throw lastError;
     },
     {
       concurrency: maxConcurrent,
@@ -118,6 +164,47 @@ export async function fetchCourseDetailsBatch(
   const failed = attempted - succeeded;
   const successRate = attempted ? succeeded / attempted : 0;
 
+  // Analyze failure patterns
+  if (failed > 0) {
+    const failureAnalysis: any = {
+      operation: "courses.details.failure.analysis", 
+      totalFailed: failed,
+      failedCourses: []
+    };
+    
+    errorsDetailed.forEach(({ id, error }) => {
+      const courseInfo: any = {
+        courseId: id,
+        courseUrl: `https://www.vhs-vg.de/kurse/kurs/${id}`
+      };
+      
+      if (error instanceof Error) {
+        courseInfo.errorMessage = error.message;
+        
+        // Extract HTTP status from error message if available
+        const statusMatch = error.message.match(/HTTP (\d+)/);
+        if (statusMatch) {
+          courseInfo.httpStatus = parseInt(statusMatch[1]);
+        }
+        
+        // Categorize error type
+        if (error.message.includes('aborted') || error.message.includes('timeout')) {
+          courseInfo.errorType = 'timeout';
+        } else if (error.message.includes('HTTP')) {
+          courseInfo.errorType = 'http_error';
+        } else if (error.message.includes('Invalid course id format')) {
+          courseInfo.errorType = 'invalid_id';
+        } else {
+          courseInfo.errorType = 'other';
+        }
+      }
+      
+      failureAnalysis.failedCourses.push(courseInfo);
+    });
+    
+    log.warn(failureAnalysis, `Failed to fetch details for ${failed} course(s) - detailed analysis`);
+  }
+
   log.info(
     {
       operation: "courses.details.summary",
@@ -128,7 +215,6 @@ export async function fetchCourseDetailsBatch(
       durationMs,
       maxConcurrent,
       initialBatchSize,
-      sessionPoolSize,
     },
     "Course details fetching summary"
   );

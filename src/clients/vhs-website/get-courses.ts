@@ -17,6 +17,7 @@ import { VhsSessionManager } from "./vhs-session-manager";
 import { fetchWithTimeoutCookies } from "./fetch-with-timeout-cookies";
 import { optimizeLocationAddress } from "./optimize-location-address";
 import { fetchCourseDetailsBatch, MAX_CONCURRENT_DETAILS } from "./fetch-course-details-batch";
+import { buildSummary } from "./fetch-course-details";
 
 export interface GetCoursesOptions {
   includeDetails?: boolean;
@@ -187,6 +188,14 @@ export async function getCourses(locationId: string, options: GetCoursesOptions 
         if (addr) {
           c.location = addr;
         }
+      }
+    }
+
+    // Ensure a summary is present when details were requested, even if a specific item's
+    // details could not be fetched. Build a minimal summary from the known list fields.
+    for (const c of courses) {
+      if (!c.summary) {
+        c.summary = buildSummary("<div></div>", c.start, "", c.link, c.bookable);
       }
     }
 
