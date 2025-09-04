@@ -72,7 +72,9 @@ describe("/api/[location]/courses", () => {
     expect(body.data.length).toBe(2);
 
     const cc = response.headers.get("cache-control");
-    expect(cc).toContain("max-age=900");
+    expect(cc).toContain("max-age=86400");
+    expect(cc).toContain("s-maxage=86400");
+    expect(cc).toContain("stale-while-revalidate=300");
   });
 
   it("should respond 404 for unknown location", async () => {

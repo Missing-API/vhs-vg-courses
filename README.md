@@ -44,6 +44,38 @@ The service crawls course information from https://www.vhs-vg.de/ and provides s
   - LOG_FILE_PATH: file path when LOG_DESTINATION=file
 - See docs/logging/logging-strategy.md and docs/logging/development-guide.md
 
+## Configuration
+
+The application can be configured via environment variables. See `.env.example` for all available options:
+
+### Logging Configuration
+
+- `LOG_LEVEL`: Logging level (debug | info | warn | error, default: info)
+- `LOG_FORMAT`: Log output format (json | pretty, default: json)
+- `LOG_DESTINATION`: Log output destination (console | file, default: console)
+- `LOG_REQUEST_DETAILS`: Include request details in logs (true | false, default: true)
+- `LOG_FILE_PATH`: File path when LOG_DESTINATION=file
+
+### VHS Website Client Configuration
+
+- `VHS_REQUEST_TIMEOUT`: HTTP request timeout in milliseconds (default: 5000)
+- `VHS_CACHE_WARMING_ENABLED`: Enable cache warming (true | false, default: true)
+- `VHS_HEALTH_TIMEOUT_MS`: Health check timeout in milliseconds (default: 8000)
+- `VHS_SESSION_TIMEOUT`: Session timeout in milliseconds (default: 900000)
+- `VHS_COOKIE_DEBUG`: Enable cookie debugging (true | false, default: false)
+- `VHS_SESSION_FALLBACK`: Enable session fallback (true | false, default: false)
+
+### HTTP Caching Configuration
+
+- `HTTP_CACHE_DURATION_SECONDS`: Cache duration for API responses in seconds (default: 86400 = 1 day)
+  - Sets `max-age` and `s-maxage` to the configured duration
+  - Automatically calculates `stale-while-revalidate` (max 300s, ~0.35% of cache duration)
+  - Example header: `Cache-Control: public, max-age=86400, s-maxage=86400, stale-while-revalidate=300`
+
+### Runtime Configuration
+
+- `NODE_ENV`: Node.js environment (development | production, default: development)
+
 ## New: Course Retrieval by Location (VHS-VG)
 
 The `vhs-website` client now supports retrieving full course lists per location, including pagination handling and default filters.

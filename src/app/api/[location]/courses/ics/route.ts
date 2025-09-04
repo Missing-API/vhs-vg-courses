@@ -3,8 +3,7 @@ import logger from "@/logging/logger";
 import { withCategory, startTimer, errorToObject } from "@/logging/helpers";
 import { getCourses, getLocations } from "@/clients/vhs-website/vhs-search.client";
 import { generateCourseIcs } from "@/clients/vhs-website/generate-course-ics";
-
-const FIFTEEN_MIN_SECONDS = 60 * 15;
+import { setCacheControlHeader } from "@/rest/cache";
 
 export async function GET(
   _req: NextRequest,
@@ -56,7 +55,8 @@ export async function GET(
       "Content-Disposition",
       `attachment; filename="${locationId}-courses.ics"`
     );
-    headers.set("Cache-Control", `public, max-age=${FIFTEEN_MIN_SECONDS}`);
+    // Set cache control header for successful response
+    setCacheControlHeader(headers);
 
     const durationMs = end();
     log.info(

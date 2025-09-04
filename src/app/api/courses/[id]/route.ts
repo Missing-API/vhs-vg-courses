@@ -1,8 +1,7 @@
 import { createNextHandler } from "@ts-rest/serverless/next";
 import { CourseDetailsContract } from "./course-details.contract";
 import { fetchCourseDetails } from "@/clients/vhs-website/fetch-course-details";
-
-const ONE_DAY_SECONDS = 60 * 60 * 24;
+import { setCacheControlHeader } from "@/rest/cache";
 
 const handler = createNextHandler(
   CourseDetailsContract,
@@ -25,11 +24,8 @@ const handler = createNextHandler(
 
         const data = await fetchCourseDetails(id);
 
-        // 1 day caching for course details
-        res.responseHeaders.set(
-          "Cache-Control",
-          `public, max-age=${ONE_DAY_SECONDS}`
-        );
+        // Set cache control header for successful response
+        setCacheControlHeader(res.responseHeaders);
 
         return {
           status: 200,

@@ -3,8 +3,7 @@ import { LocationsContract } from "./locations.contract";
 import { getLocations } from "@/clients/vhs-website/vhs-search.client";
 import logger from "@/logging/logger";
 import { withCategory, startTimer, errorToObject } from "@/logging/helpers";
-
-const ONE_DAY_SECONDS = 60 * 60 * 24;
+import { setCacheControlHeader } from "@/rest/cache";
 
 const handler = createNextHandler(
   LocationsContract,
@@ -19,11 +18,8 @@ const handler = createNextHandler(
         const locationsData = await getLocations();
         const locationsArray = locationsData.locations;
 
-        // 1 day cache as per API specification
-        res.responseHeaders.set(
-          "Cache-Control",
-          `public, max-age=${ONE_DAY_SECONDS}`
-        );
+        // Set cache control header for successful response
+        setCacheControlHeader(res.responseHeaders);
 
         const durationMs = end();
         log.info({ status: 200, durationMs, count: locationsArray.length }, 'Locations response sent');

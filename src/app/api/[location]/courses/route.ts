@@ -3,8 +3,7 @@ import { CoursesContract } from "./courses.contract";
 import { getCourses, getLocations } from "@/clients/vhs-website/vhs-search.client";
 import logger from "@/logging/logger";
 import { withCategory, startTimer, errorToObject } from "@/logging/helpers";
-
-const FIFTEEN_MIN_SECONDS = 60 * 15;
+import { setCacheControlHeader } from "@/rest/cache";
 
 const handler = createNextHandler(
   CoursesContract,
@@ -46,11 +45,8 @@ const handler = createNextHandler(
         const includeDetails = !!query?.details;
         const result = await getCourses(locationId, { includeDetails });
 
-        // 15 minutes cache for course lists
-        res.responseHeaders.set(
-          "Cache-Control",
-          `public, max-age=${FIFTEEN_MIN_SECONDS}`
-        );
+        // Set cache control header for successful response
+        setCacheControlHeader(res.responseHeaders);
 
         const durationMs = end();
         log.info({ status: 200, durationMs, locationId, count: result.count, includeDetails }, 'Courses response sent');
