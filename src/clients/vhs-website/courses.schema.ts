@@ -7,6 +7,7 @@ export const CourseSchema = z.object({
   title: z.string(),
   link: z.string(), // absolute URL to course detail
   start: ISO8601Schema, // ISO8601 start datetime
+  end: ISO8601Schema.optional(), // ISO8601 end datetime - calculated from schedule duration
   location: z.string().default(""), // optimized postal address for Google Maps (or raw cell text if details not requested)
   available: z.boolean(), // derived from "x von y"
   bookable: z.boolean(),

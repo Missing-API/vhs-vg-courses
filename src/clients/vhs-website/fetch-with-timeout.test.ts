@@ -20,7 +20,11 @@ describe("fetchWithTimeout", () => {
 
     expect(fetchSpy).toHaveBeenCalledWith("https://example.com", {
       signal: expect.any(AbortSignal),
-      next: { revalidate: 86400 }
+      next: { 
+        revalidate: 86400,
+        tags: ['vhs-courses']
+      },
+      cache: 'force-cache'
     });
     expect(result).toBe(mockResponse);
   });
@@ -35,7 +39,11 @@ describe("fetchWithTimeout", () => {
     expect(fetchSpy).toHaveBeenCalledWith("https://example.com", {
       ...initOptions,
       signal: expect.any(AbortSignal),
-      next: { revalidate: 86400 }
+      next: { 
+        revalidate: 86400,
+        tags: ['vhs-courses']
+      },
+      cache: 'force-cache'
     });
   });
 
@@ -97,7 +105,11 @@ describe("fetchWithTimeout", () => {
     expect(fetchSpy).toHaveBeenCalledWith(
       "https://example.com",
       expect.objectContaining({
-        next: { revalidate: 86400 } // 24 hours
+        next: { 
+          revalidate: 86400, // 24 hours
+          tags: ['vhs-courses']
+        },
+        cache: 'force-cache'
       })
     );
   });

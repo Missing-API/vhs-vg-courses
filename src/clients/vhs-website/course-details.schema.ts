@@ -14,6 +14,7 @@ export const CourseDetailsSchema = z.object({
   title: z.string(),
   description: z.string(),
   start: z.string(), // ISO 8601 datetime
+  end: z.string().optional(), // ISO 8601 datetime - calculated from schedule duration
   duration: z.string(),
   numberOfDates: z.number(),
   schedule: z.array(CourseSessionSchema),

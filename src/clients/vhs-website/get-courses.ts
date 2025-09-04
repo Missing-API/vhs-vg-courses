@@ -183,6 +183,9 @@ export async function getCourses(locationId: string, options: GetCoursesOptions 
         if (details.start) {
           c.start = details.start;
         }
+        if (details.end) {
+          c.end = details.end;
+        }
         c.summary = details.summary;
         const addr = details.location?.address || "";
         if (addr) {

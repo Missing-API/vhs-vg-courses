@@ -86,6 +86,10 @@ export function generateCourseIcs(
       continue;
     }
 
+    // Calculate end time if available
+    const end = c.end ? new Date(c.end) : undefined;
+    const validEnd = end && !isNaN(end.getTime()) ? end : undefined;
+
     // Build description with both plain and HTML when available
     const html = c.summary || '';
     const plain = htmlToPlain(html);
@@ -100,8 +104,7 @@ export function generateCourseIcs(
     cal.createEvent({
       id: `VHSVG-${c.id}`,
       start,
-      // We intentionally omit end if not known; many clients will render a timed start.
-      // If needed later, we can derive end from details.schedule entries.
+      end: validEnd, // Include end time if available for proper duration
       summary: c.title,
       description: html ? { html, plain } : plain,
       location: c.location || undefined,

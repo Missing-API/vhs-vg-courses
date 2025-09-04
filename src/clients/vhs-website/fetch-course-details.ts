@@ -410,6 +410,27 @@ export async function fetchCourseDetails(
     startFromJsonLd ||
     "";
 
+  // Calculate end datetime from schedule duration if available
+  let endValue: string | undefined;
+  if (startValue && schedule[0]?.start && schedule[0]?.end) {
+    try {
+      const startDate = new Date(startValue);
+      const sessionStart = new Date(schedule[0].start);
+      const sessionEnd = new Date(schedule[0].end);
+      
+      if (!isNaN(startDate.getTime()) && !isNaN(sessionStart.getTime()) && !isNaN(sessionEnd.getTime())) {
+        // Calculate duration in minutes from first schedule entry
+        const durationMs = sessionEnd.getTime() - sessionStart.getTime();
+        
+        // Add duration to the course start time
+        const endDate = new Date(startDate.getTime() + durationMs);
+        endValue = endDate.toISOString();
+      }
+    } catch {
+      // Ignore calculation errors, endValue remains undefined
+    }
+  }
+
   // Determine bookable status from detail page indicators (e.g., .ampelicon.buchbar)
   const isBookable = $(".ampelicon.buchbar").length > 0;
 
@@ -426,6 +447,7 @@ export async function fetchCourseDetails(
     title,
     description,
     start: startValue,
+    end: endValue,
     duration,
     numberOfDates: numberOfDates || schedule.length || 0,
     schedule,
