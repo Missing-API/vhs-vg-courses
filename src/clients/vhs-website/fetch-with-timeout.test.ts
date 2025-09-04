@@ -82,6 +82,12 @@ describe("fetchWithTimeout", () => {
   });
 
   it("should use default timeout of 8 seconds", async () => {
+    // Save original environment variable
+    const originalTimeout = process.env.VHS_REQUEST_TIMEOUT;
+    
+    // Clear environment variable to test fallback
+    delete process.env.VHS_REQUEST_TIMEOUT;
+    
     // This test verifies the default timeout value is passed to setTimeout
     // We'll mock setTimeout to verify the timeout value
     const setTimeoutSpy = vi.spyOn(global, "setTimeout");
@@ -94,6 +100,11 @@ describe("fetchWithTimeout", () => {
     expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 8000);
     
     setTimeoutSpy.mockRestore();
+    
+    // Restore original environment variable
+    if (originalTimeout) {
+      process.env.VHS_REQUEST_TIMEOUT = originalTimeout;
+    }
   });
 
   it("should include Next.js cache settings", async () => {

@@ -8,16 +8,19 @@ import { withCategory, startTimer, errorToObject } from '@/logging/helpers';
 export async function fetchWithTimeout(
   url: string,
   options: RequestInit = {},
-  timeoutMs: number = 8000 // Reduced from 10s to 8s for faster timeout detection
+  timeoutMs?: number
 ): Promise<Response> {
+  // Compute timeout inside function to ensure test can override environment
+  const actualTimeout = timeoutMs ?? (Number(process.env.VHS_REQUEST_TIMEOUT) || 8000);
+  
   const log = withCategory(logger, 'vhsClient');
   const end = startTimer();
 
   const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeoutMs);
+  const id = setTimeout(() => controller.abort(), actualTimeout);
   const method = options?.method || 'GET';
 
-  log.debug({ operation: 'fetch', url, method, timeoutMs }, 'HTTP request start');
+  log.debug({ operation: 'fetch', url, method, timeoutMs: actualTimeout }, 'HTTP request start');
 
   try {
     const res = await fetch(url, { 

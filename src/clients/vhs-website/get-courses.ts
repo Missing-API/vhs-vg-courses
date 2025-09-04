@@ -1,6 +1,5 @@
 "use cache";
 
-import { fetchWithTimeout } from "./fetch-with-timeout";
 import { extractSearchFormUrl } from "./extract-search-form-url";
 import {
   buildCourseSearchRequest,
