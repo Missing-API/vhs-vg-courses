@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import { Course } from "./courses.schema";
+import { addCoursePrefix } from "./add-course-prefix";
 
 /**
  * Parse a localized date/time string like "Mo. 08.09.2025, 13.00 Uhr" into ISO8601 (UTC).
@@ -104,7 +105,7 @@ export function parseCourseResults(html: string, baseHref: string): Course[] {
 
     courses.push({
       id,
-      title,
+      title: addCoursePrefix(title),
       link,
       start,
       location: locationCell, // will be optimized later

@@ -23,7 +23,7 @@ describe("ICS Generation with End DateTime", () => {
     // Verify the ICS contains both DTSTART and DTEND
     expect(ics).toContain("DTSTART");
     expect(ics).toContain("DTEND");
-    expect(ics).toContain("SUMMARY:Test Course with End Time");
+    expect(ics).toContain("SUMMARY:vhs Kurs: Test Course with End Time");
   });
 
   it("should handle courses without end datetime gracefully", () => {
@@ -45,7 +45,7 @@ describe("ICS Generation with End DateTime", () => {
 
     // Should contain DTSTART but not DTEND
     expect(ics).toContain("DTSTART");
-    expect(ics).toContain("SUMMARY:Test Course without End Time");
+    expect(ics).toContain("SUMMARY:vhs Kurs: Test Course without End Time");
     
     // Should not contain DTEND when end is not available
     expect(ics).not.toMatch(/DTEND[^:]*:20240115T/);

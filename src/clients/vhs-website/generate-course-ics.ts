@@ -1,5 +1,6 @@
 import ical, { ICalCalendar, ICalEventStatus, ICalCategoryData } from 'ical-generator';
 import type { Course } from './courses.schema';
+import { addCoursePrefix } from './add-course-prefix';
 
 /**
  * Extract categories from our HTML summary.
@@ -105,7 +106,7 @@ export function generateCourseIcs(
       id: `VHSVG-${c.id}`,
       start,
       end: validEnd, // Include end time if available for proper duration
-      summary: c.title,
+      summary: addCoursePrefix(c.title),
       description: html ? { html, plain } : plain,
       location: c.location || undefined,
       url: c.link || undefined,

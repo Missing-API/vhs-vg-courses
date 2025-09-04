@@ -4,6 +4,7 @@ import { CourseDetailsSchema, type CourseDetails, type CourseSession } from "./c
 import { findCourseJsonLd } from "./parse-json-ld";
 import { parseScheduleEntry, parseGermanDate } from "./parse-course-dates";
 import { optimizeLocationAddress } from "./optimize-location-address";
+import { addCoursePrefix } from "./add-course-prefix";
 
 /**
  * Validates a VHS course id - accepts any non-empty string with reasonable characters
@@ -332,7 +333,7 @@ export async function fetchCourseDetails(
   // Title: prefer H1, fallback to JSON-LD
   const titleH1 = $("h1").first().text().replace(/\s+/g, " ").trim();
   const jsonld = findCourseJsonLd(html);
-  const title = titleH1 || jsonld?.name || "";
+  const title = addCoursePrefix(titleH1 || jsonld?.name || "");
 
   // Description: extract from div.kw-kurs-info-text primarily, with fallbacks; simplified to <div>...</div>
   const description = extractDescription($, jsonld);
