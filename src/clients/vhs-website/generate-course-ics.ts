@@ -1,6 +1,7 @@
 import ical, { ICalCalendar, ICalEventStatus, ICalCategoryData } from 'ical-generator';
 import type { Course } from './courses.schema';
 import { addCoursePrefix } from './add-course-prefix';
+import { dataToText, dataToHtml, type TextWithData } from '../../utils/data-text-mapper';
 
 /**
  * Extract categories from our HTML summary.
@@ -28,18 +29,16 @@ function extractCategoriesFromSummary(summaryHtml?: string): string[] {
 }
 
 /**
- * Convert the HTML summary into a plain text string.
- * - Replace <br> with newlines
- * - Strip remaining tags
- * - Collapse whitespace
+ * Create structured data for data-text-mapper from course details.
  */
-function htmlToPlain(summaryHtml?: string): string {
-  if (!summaryHtml) return '';
-  let s = summaryHtml.replace(/<\s*br\s*\/?>/gi, '\n');
-  s = s.replace(/<[^>]+>/g, ''); // strip tags
-  s = s.replace(/\u00a0/g, ' '); // nbsp to space
-  s = s.split('\n').map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean).join('\n');
-  return s;
+function createTextWithData(course: Course): TextWithData {
+  return {
+    description: course.description || course.title, // Use description if available, otherwise title
+    url: course.url || course.link,
+    tags: course.tags || ['Bildung', 'Volkshochschule'],
+    scopes: course.scopes || ['Region'],
+    image: course.image,
+  };
 }
 
 export interface GenerateCourseIcsOptions {
@@ -51,11 +50,11 @@ export interface GenerateCourseIcsOptions {
 /**
  * Build an ICS string for a list of courses for a given location.
  * - SUMMARY: course.title
- * - DESCRIPTION: uses course.summary (html) and a plain text variant
+ * - DESCRIPTION: uses dataToText for plain text and dataToHtml for HTML 
  * - DTSTART: course.start (ISO8601); interpreted in Europe/Berlin by consumers
  * - LOCATION: course.location (optimized address)
  * - UID: prefixed with VHSVG-
- * - CATEGORIES: from summary taxonomy tags (#Bildung, #Volkshochschule)
+ * - CATEGORIES: from course details tags or default values
  * - URL: course.link
  * - STATUS: CANCELLED if available === false
  */
@@ -91,23 +90,24 @@ export function generateCourseIcs(
     const end = c.end ? new Date(c.end) : undefined;
     const validEnd = end && !isNaN(end.getTime()) ? end : undefined;
 
-    // Build description with both plain and HTML when available
-    const html = c.summary || '';
-    const plain = htmlToPlain(html);
-    const categories = extractCategoriesFromSummary(html);
+    // Create structured data for both plain text and HTML descriptions
+    const textWithData = createTextWithData(c);
+    const plainDescription = dataToText(textWithData);
+    const htmlDescription = dataToHtml(textWithData);
+    
+    // Extract categories from details or use defaults
+    const categories = c.tags || extractCategoriesFromSummary(c.summary) || ['Bildung', 'Volkshochschule'];
     const status: ICalEventStatus = c.available === false ? ICalEventStatus.CANCELLED : ICalEventStatus.CONFIRMED;
     
     // Convert string categories to ICalCategoryData format
-    const categoryData: ICalCategoryData[] = categories.length 
-      ? categories.map(cat => ({ name: cat }))
-      : [{ name: 'Bildung' }, { name: 'Volkshochschule' }];
+    const categoryData: ICalCategoryData[] = categories.map((cat: string) => ({ name: cat }));
 
     cal.createEvent({
       id: `VHSVG-${c.id}`,
       start,
       end: validEnd, // Include end time if available for proper duration
       summary: addCoursePrefix(c.title),
-      description: html ? { html, plain } : plain,
+      description: { plain: plainDescription, html: htmlDescription },
       location: c.location || undefined,
       url: c.link || undefined,
       created: now,

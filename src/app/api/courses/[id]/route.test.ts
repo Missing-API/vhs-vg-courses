@@ -13,8 +13,12 @@ describe("/api/courses/[id]", () => {
   const mockDetails = {
     id: "252P40405",
     title: "telc-Prüfung Deutsch B2 (nur mit persönlicher Anmeldung)",
+    link: "https://www.vhs-vg.de/kurse/kurs/252P40405",
     description: "Wenn Sie Ihre Deutschkenntnisse auf dem Niveau B2 nachweisen müssen...",
     start: "2025-11-15T09:00:00.000Z",
+    end: "2025-11-15T16:00:00.000Z",
+    available: true,
+    bookable: true,
     duration: "1 Termin",
     numberOfDates: 1,
     schedule: [
@@ -22,7 +26,6 @@ describe("/api/courses/[id]", () => {
         date: "2025-11-15",
         start: "2025-11-15T09:00:00.000Z",
         end: "2025-11-15T16:00:00.000Z",
-        room: "Raum 302",
       },
     ],
     location: {

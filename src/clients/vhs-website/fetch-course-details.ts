@@ -5,6 +5,7 @@ import { findCourseJsonLd } from "./parse-json-ld";
 import { parseScheduleEntry, parseGermanDate } from "./parse-course-dates";
 import { optimizeLocationAddress } from "./optimize-location-address";
 import { addCoursePrefix } from "./add-course-prefix";
+import { htmlToText } from "../../utils/data-text-mapper";
 
 /**
  * Validates a VHS course id - accepts any non-empty string with reasonable characters
@@ -30,54 +31,10 @@ function buildCourseUrl(id: string) {
 }
 
 /**
- * HTML escape for text nodes/attributes
- */
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-/**
- * Simplify rich HTML into a single wrapping <div> with text and <br> for line breaks.
- * - Removes all tags/attributes
- * - Preserves line breaks for paragraphs, divs, list items and <br>
- * - Collapses duplicate/empty lines
- */
-function simplifyHtmlToDiv(fragmentHtml: string): string {
-  if (!fragmentHtml) return "<div></div>";
-
-  // Convert obvious line break boundaries to \n
-
-  let s = fragmentHtml
-    .replace(/<\s*br\s*\/?>/gi, "\n")
-    .replace(/<\/\s*(p|div|li|h[1-6])\s*>/gi, "\n")
-    // remove scripts/styles entirely
-    .replace(/<\s*(script|style)[^>]*>[\s\S]*?<\/\s*\1\s*>/gi, "");
-
-  // Strip all remaining tags
-  s = s.replace(/<[^>]+>/g, "");
-
-  // Normalize whitespace and lines
-  s = s.replace(/\u00a0/g, " "); // nbsp to space
-  const lines = s
-    .split("\n")
-    .map((l) => l.replace(/\s+/g, " ").trim())
-    .filter((l) => l.length > 0);
-
-  // Join with single <br>
-  const inner = lines.map((l) => escapeHtml(l)).join("<br>");
-  return `<div>${inner}</div>`;
-}
-
-/**
  * Extract text content from a cheerio element while preserving line breaks.
- * Returns simplified HTML (<div> ... <br> ... </div>) as string.
+ * Returns plain text string.
  */
-function simplifyContentToDiv(element: cheerio.Cheerio<any>): string {
+function simplifyContentToText(element: cheerio.Cheerio<any>): string {
   // Remove hidden elements first
   const cleanElement = element.clone();
   cleanElement.find('[style*="display:none"], [style*="display: none"]').remove();
@@ -102,27 +59,24 @@ function simplifyContentToDiv(element: cheerio.Cheerio<any>): string {
     }
   }
   
-  // Escape HTML entities in each text part and join with <br>
-  const escapedParts = textParts.map(part => escapeHtml(part));
-  
-  return `<div>${escapedParts.join('<br>')}</div>`;
+  return textParts.join('\n');
 }
 
 /**
  * Extract description primarily from div.kw-kurs-info-text, with fallbacks.
- * Returns simplified HTML (<div> ... <br> ... </div>) as string.
+ * Returns plain text string.
  */
 function extractDescription($: cheerio.CheerioAPI, jsonld?: { description?: string }): string {
   // Primary: div.kw-kurs-info-text
   const info = $("div.kw-kurs-info-text").first();
   if (info.length) {
-    // Use text extraction to avoid double-escaping, then build our own structure
-    return simplifyContentToDiv(info);
+    // Use text extraction to get plain text
+    return simplifyContentToText(info);
   }
 
   // Secondary: JSON-LD description
   if (jsonld?.description) {
-    return simplifyHtmlToDiv(jsonld.description);
+    return htmlToText(jsonld.description);
   }
 
   // Tertiary: generic paragraphs in known containers
@@ -148,11 +102,11 @@ function extractDescription($: cheerio.CheerioAPI, jsonld?: { description?: stri
     });
   }
   if (texts.length) {
-    return simplifyHtmlToDiv(texts.join("\n"));
+    return htmlToText(texts.join("\n"));
   }
 
   // Final: empty
-  return "<div></div>";
+  return "";
 }
 
 /**
@@ -255,68 +209,6 @@ function formatGermanDateTime(iso?: string): string | undefined {
 }
 
 /**
- * Build a summary HTML snippet combining description, start info and link.
- */
-export function buildSummary(
-  description: string,
-  startDateIso: string,
-  duration: string,
-  courseDetailUrl: string,
-  options?: { bookable?: boolean }
-): string {
-  // Pull inner content of description's outer <div> (if present)
-  let descInner = "";
-  if (description) {
-    const $desc = cheerio.load(description);
-    const inner = $desc("div").first().html() ?? $desc.root().html() ?? "";
-    // We only allow text and <br> from the cleaned description; ensure no attributes remain
-    // Clean any stray tags except <br>
-    const cleaned = inner
-      .replace(/\s*(?!br\s*\/?)[^>]+>/gi, "")
-      .replace(/\s*br\s*\/?>/gi, "<br>")
-      .replace(/(\s*<br>\s*)+/gi, "<br>")
-      .trim();
-    descInner = cleaned;
-  }
-
-  const startFormatted = formatGermanDateTime(startDateIso);
-  const hasStart = !!startFormatted;
-  const hasDuration = !!(duration && duration.trim());
-  let startLine = "";
-
-  if (hasStart && hasDuration) {
-    startLine = `Der Kurs beginnt am ${escapeHtml(startFormatted!)} und hat ${escapeHtml(duration.trim())}.`;
-  } else if (hasStart) {
-    startLine = `Der Kurs beginnt am ${escapeHtml(startFormatted!)}.`;
-  } else if (hasDuration) {
-    startLine = `Der Kurs hat ${escapeHtml(duration.trim())}.`;
-  } else {
-    startLine = `Details zum Starttermin folgen.`;
-  }
-
-  const safeHref = escapeHtml(courseDetailUrl);
-
-  // Assemble required structure with enhanced semantics and taxonomy
-  const p1 = `<p class="description">${descInner}</p>`;
-  const p2 = `<p>${startLine}</p>`;
-  const pBookable = options?.bookable ? `<p>Dieser Kurs ist online buchbar.</p>` : "";
-  const p3 = `<p class="link"><a href="${safeHref}">alle Kursinfos</a></p>`;
-  const pTaxonomy = `<p class="taxonomy">
-    <span class="tag">#Bildung</span> 
-    <span class="tag">#Volkshochschule</span> 
-    <span class="scope">@Region</span>
-  </p>`;
-
-  return `<div>
-  ${p1}
-  ${p2}
-  ${pBookable}
-  ${p3}
-  ${pTaxonomy}
-</div>`;
-}
-
-/**
  * Main fetcher with Next.js caching via fetchWithTimeout and directive
  */
 export async function fetchCourseDetails(
@@ -390,7 +282,7 @@ export async function fetchCourseDetails(
 
   // Infer venue/room from schedule entries if not present yet
   if (!venueName && schedule.length) venueName = undefined;
-  if (!room && schedule[0]?.room) room = schedule[0].room;
+  // Note: room is no longer part of CourseSession, so we don't try to extract it from schedule
 
   // Location aggregate
   let addressOptimized = addressStr || "";
@@ -409,7 +301,7 @@ export async function fetchCourseDetails(
     (schedule[0]?.start && schedule[0].start) ||
     startFromLabel ||
     startFromJsonLd ||
-    "";
+    new Date().toISOString(); // Fallback to current time if no start date found
 
   // Calculate end datetime from schedule duration if available
   let endValue: string | undefined;
@@ -435,25 +327,51 @@ export async function fetchCourseDetails(
   // Determine bookable status from detail page indicators (e.g., .ampelicon.buchbar)
   const isBookable = $(".ampelicon.buchbar").length > 0;
 
-  const summary = buildSummary(
-    description,
-    startValue,
-    duration || (numberOfDates ? `${numberOfDates} Termin${numberOfDates > 1 ? "e" : ""}` : ""),
-    url,
-    { bookable: isBookable }
-  );
+  // Build enhanced description with timing and booking information
+  let enhancedDescription = description;
+  
+  // Add timing information to description if available
+  if (startValue || duration) {
+    const startFormatted = startValue ? formatGermanDateTime(startValue) : null;
+    const hasStart = !!startFormatted;
+    const hasDuration = !!(duration && duration.trim());
+    let timingInfo = "";
+
+    if (hasStart && hasDuration) {
+      timingInfo = `Der Kurs beginnt am ${startFormatted!} und hat ${duration.trim()}.`;
+    } else if (hasStart) {
+      timingInfo = `Der Kurs beginnt am ${startFormatted!}.`;
+    } else if (hasDuration) {
+      timingInfo = `Der Kurs hat ${duration.trim()}.`;
+    }
+
+    if (timingInfo) {
+      enhancedDescription = enhancedDescription ? `${enhancedDescription}\n\n${timingInfo}` : timingInfo;
+    }
+  }
+
+  // Add bookable information
+  if (isBookable) {
+    const bookableInfo = "Dieser Kurs ist online buchbar.";
+    enhancedDescription = enhancedDescription ? `${enhancedDescription}\n\n${bookableInfo}` : bookableInfo;
+  }
 
   const result: CourseDetails = {
     id: courseId,
     title,
-    description,
+    link: url,
     start: startValue,
     end: endValue,
+    available: true, // Assume available if we can fetch details
+    bookable: isBookable,
+    description: enhancedDescription,
+    url: url,
+    tags: ["Bildung", "Volkshochschule"],
+    scopes: ["Region"],
     duration,
     numberOfDates: numberOfDates || schedule.length || 0,
     schedule,
     location,
-    summary,
   };
 
   return CourseDetailsSchema.parse(result);

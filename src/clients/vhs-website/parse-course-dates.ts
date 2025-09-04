@@ -124,6 +124,5 @@ export function parseScheduleEntry(scheduleText: string): CourseSession {
     date: dateIso,
     start: start.toISOString(),
     end: end.toISOString(),
-    room,
   };
 }

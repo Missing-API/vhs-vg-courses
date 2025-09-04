@@ -16,7 +16,6 @@ import { VhsSessionManager } from "./vhs-session-manager";
 import { fetchWithTimeoutCookies } from "./fetch-with-timeout-cookies";
 import { optimizeLocationAddress } from "./optimize-location-address";
 import { fetchCourseDetailsBatch, MAX_CONCURRENT_DETAILS } from "./fetch-course-details-batch";
-import { buildSummary } from "./fetch-course-details";
 
 export interface GetCoursesOptions {
   includeDetails?: boolean;
@@ -185,19 +184,23 @@ export async function getCourses(locationId: string, options: GetCoursesOptions 
         if (details.end) {
           c.end = details.end;
         }
-        c.summary = details.summary;
-        const addr = details.location?.address || "";
-        if (addr) {
-          c.location = addr;
+        // Copy structured content fields from details to course
+        if (details.description) {
+          c.description = details.description;
         }
-      }
-    }
-
-    // Ensure a summary is present when details were requested, even if a specific item's
-    // details could not be fetched. Build a minimal summary from the known list fields.
-    for (const c of courses) {
-      if (!c.summary) {
-        c.summary = buildSummary("<div></div>", c.start, "", c.link, { bookable: c.bookable });
+        if (details.url) {
+          c.url = details.url;
+        }
+        if (details.tags) {
+          c.tags = details.tags;
+        }
+        if (details.scopes) {
+          c.scopes = details.scopes;
+        }
+        if (details.image) {
+          c.image = details.image;
+        }
+        // Note: We keep the location from the course list and do not override it with details.location
       }
     }
 

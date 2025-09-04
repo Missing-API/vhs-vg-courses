@@ -23,22 +23,23 @@ describe("End DateTime Integration", () => {
     const courseDetails: CourseDetails = {
       id: "TEST123",
       title: "Test Course",
-      description: "<div>Test description</div>",
+      link: "https://example.com/course/TEST123",
       start: "2024-01-15T10:00:00.000Z",
       end: "2024-01-15T12:30:00.000Z", // This should compile without errors
+      available: true,
+      bookable: true,
+      description: "Test description",
       duration: "2.5 hours",
       numberOfDates: 1,
       schedule: [{
         date: "2024-01-15",
         start: "2024-01-15T10:00:00.000Z",
-        end: "2024-01-15T12:30:00.000Z",
-        room: "Room A"
+        end: "2024-01-15T12:30:00.000Z"
       }],
       location: {
         name: "Test Location",
         address: "Test Address"
-      },
-      summary: "<div>Test summary</div>"
+      }
     };
 
     expect(courseDetails.end).toBe("2024-01-15T12:30:00.000Z");

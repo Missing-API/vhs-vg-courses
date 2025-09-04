@@ -4,7 +4,26 @@ import { fetchCourseDetails } from "./fetch-course-details";
 import type { CourseDetails } from "./course-details.schema";
 import { processInBatches } from "./batch-processor";
 
-export const MAX_RETRY_ATTEMPTS = 3;
+/**
+ * Default maximum retry attempts
+ */
+const DEFAULT_MAX_RETRY_ATTEMPTS = 3;
+
+/**
+ * Get the maximum retry attempts from environment variable or use default
+ * @returns Maximum retry attempts
+ */
+export function getMaxRetryAttempts(): number {
+  const envValue = process.env.MAX_RETRY_ATTEMPTS;
+  if (envValue) {
+    const parsed = parseInt(envValue, 10);
+    if (!isNaN(parsed) && parsed >= 1) {
+      return parsed;
+    }
+  }
+  return DEFAULT_MAX_RETRY_ATTEMPTS;
+}
+
 export const MAX_CONCURRENT_DETAILS = 40; // Increased from 25 to 40 for maximum parallelization
 
 export interface FetchCourseDetailsBatchOptions {
@@ -42,12 +61,13 @@ export async function fetchCourseDetailsBatch(
       // Retry logic with exponential backoff
       let lastError: unknown;
       const courseUrl = `https://www.vhs-vg.de/kurse/kurs/${id}`;
+      const maxRetryAttempts = getMaxRetryAttempts();
       
-      for (let attempt = 1; attempt <= 2; attempt++) { // Reduced from 3 to 2 attempts
+      for (let attempt = 1; attempt <= maxRetryAttempts; attempt++) {
         try {
           if (attempt > 1) {
-            // Faster retry: wait only 25ms on second attempt
-            const delay = 25;
+            // Faster retry: wait only 25ms on subsequent attempts
+            const delay = 250;
             await new Promise(resolve => setTimeout(resolve, delay));
           }
           
@@ -65,7 +85,7 @@ export async function fetchCourseDetailsBatch(
             courseId: id,
             courseUrl,
             attempt,
-            maxAttempts: 2
+            maxAttempts: maxRetryAttempts
           };
           
           if (error instanceof Error) {
@@ -87,7 +107,7 @@ export async function fetchCourseDetailsBatch(
             }
           }
           
-          if (attempt === 2) {
+          if (attempt === maxRetryAttempts) {
             log.error(errorInfo, `Failed to fetch course details after ${attempt} attempts`);
           } else {
             log.warn(errorInfo, `Course detail fetch attempt ${attempt} failed, retrying`);
@@ -98,7 +118,7 @@ export async function fetchCourseDetailsBatch(
             throw error;
           }
           // On last attempt, throw the error
-          if (attempt === 2) {
+          if (attempt === maxRetryAttempts) {
             throw error;
           }
           // Continue to next attempt for other errors (timeouts, network issues)

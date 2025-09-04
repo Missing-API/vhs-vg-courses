@@ -21,7 +21,7 @@ describe("buildCourseSearchRequest", () => {
 
   it("should provide appropriate headers", () => {
     const headers = courseSearchHeaders();
-    expect(headers["Content-Type"]).toBe("application/x-www-form-urlencoded");
+    expect((headers as Record<string, string>)["Content-Type"]).toBe("application/x-www-form-urlencoded");
   });
 
   it("should throw for empty location", () => {

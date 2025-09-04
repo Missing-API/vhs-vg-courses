@@ -29,8 +29,7 @@ describe("fetchCourseDetails - end datetime calculation", () => {
     vi.mocked(parseScheduleEntry).mockReturnValue({
       date: "2024-01-15",
       start: "2024-01-15T10:00:00.000Z",
-      end: "2024-01-15T12:30:00.000Z",
-      room: "Room A"
+      end: "2024-01-15T12:30:00.000Z"
     });
 
     // Mock other dependencies
@@ -92,8 +91,7 @@ describe("fetchCourseDetails - end datetime calculation", () => {
     vi.mocked(parseScheduleEntry).mockReturnValue({
       date: "2024-01-15",
       start: "invalid-date",
-      end: "invalid-date",
-      room: "Room A"
+      end: "invalid-date"
     });
 
     const { findCourseJsonLd } = await import("./parse-json-ld");

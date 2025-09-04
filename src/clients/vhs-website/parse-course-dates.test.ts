@@ -28,7 +28,7 @@ describe("parse-course-dates utilities", () => {
   it("parses schedule entry with room and location", () => {
     const s = parseScheduleEntry("Mittwoch • 12.11.2025 • 17:00 - 20:15 Uhr • VHS in Greifswald • Raum 12");
     expect(s.date).toBe("2025-11-12");
-    expect(s.room).toBe("Raum 12");
+    // Note: room is no longer included in CourseSession
   });
 
   it("parses schedule entry with only 'um' time", () => {
