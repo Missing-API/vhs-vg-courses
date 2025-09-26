@@ -21,7 +21,7 @@ describe("/api/[location]/courses (integration)", () => {
       console.warn("Integration test skipped - server not available:", error);
       expect(true).toBe(true);
     }
-  });
+  }, 10000); // 10 second timeout for VHS website integration
 
   it("should support details=true to include metadata and possibly embedded details", async () => {
     try {
@@ -41,5 +41,5 @@ describe("/api/[location]/courses (integration)", () => {
       console.warn("Integration test skipped - server not available:", error);
       expect(true).toBe(true);
     }
-  });
+  }, 30000); // 30 second timeout for details fetching (slower due to individual course requests)
 });

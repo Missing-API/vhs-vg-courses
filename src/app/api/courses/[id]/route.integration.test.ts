@@ -21,5 +21,5 @@ describe("/api/courses/[id] (integration)", () => {
       console.warn("Integration test skipped - server not available:", error);
       expect(true).toBe(true); // pass but effectively skipped
     }
-  });
+  }, 15000); // 15 second timeout for course details fetching
 });

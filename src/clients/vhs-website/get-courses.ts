@@ -223,16 +223,33 @@ export async function getCourses(locationId: string, options: GetCoursesOptions 
   }
 
   const durationMs = end();
-  log.info(
-    {
-      operation: 'courses.get',
-      locationId,
-      count: courses.length,
-      durationMs,
-      details: includeDetails ? { attempted: meta?.attempted, succeeded: meta?.succeeded, failed: meta?.failed } : undefined,
-    },
-    'Fetched courses'
-  );
+  
+  // Warn if no courses found - this is suspicious and may indicate scraping issues
+  if (courses.length === 0) {
+    log.warn(
+      {
+        operation: 'courses.get',
+        locationId,
+        locationName,
+        expectedCount,
+        pagesProcessed: allHtml.length,
+        durationMs,
+        warnings: warnings.length ? warnings : undefined,
+      },
+      'No courses found - possible scraping or filtering issue'
+    );
+  } else {
+    log.info(
+      {
+        operation: 'courses.get',
+        locationId,
+        count: courses.length,
+        durationMs,
+        details: includeDetails ? { attempted: meta?.attempted, succeeded: meta?.succeeded, failed: meta?.failed } : undefined,
+      },
+      'Fetched courses'
+    );
+  }
 
   return {
     courses,

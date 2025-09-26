@@ -42,6 +42,15 @@ export async function fetchWithTimeoutCookies(
 
   log.debug({ operation: 'fetch', url, method, timeoutMs, useSession: !!useSession }, 'HTTP request start');
 
+  // Log all request headers for debugging
+  const requestHeaders: Record<string, string> = {};
+  headers.forEach((value, key) => {
+    requestHeaders[key] = key.toLowerCase().includes('cookie') ? '[REDACTED]' : value;
+  });
+  if (log.trace) {
+    log.trace({ operation: 'fetch.request', url, method, headers: requestHeaders, body: init?.body ? '[BODY_PRESENT]' : undefined }, 'Request details');
+  }
+
   try {
     const res = await fetch(url, {
       ...init,
@@ -49,6 +58,24 @@ export async function fetchWithTimeoutCookies(
       signal: controller.signal,
       next: { revalidate: 86400 }, // 24 hours
     });
+
+    // Log all response headers for debugging
+    const responseHeaders: Record<string, string> = {};
+    res.headers.forEach((value, key) => {
+      responseHeaders[key] = key.toLowerCase().includes('cookie') ? '[REDACTED]' : value;
+    });
+    if (log.trace) {
+      log.trace({ 
+        operation: 'fetch.response.headers', 
+        url, 
+        status: res.status, 
+        statusText: res.statusText,
+        headers: responseHeaders,
+        contentType: res.headers.get('content-type'),
+        contentLength: res.headers.get('content-length'),
+        cacheControl: res.headers.get('cache-control')
+      }, 'Response headers received');
+    }
 
     // Update cookies from response if requested
     if (useSession && manager) {
@@ -58,6 +85,8 @@ export async function fetchWithTimeoutCookies(
         log.warn({ operation: 'cookie.update.error', url, err: errorToObject(e) }, 'Failed to update cookies from response');
       }
     }
+
+
 
     const durationMs = end();
 

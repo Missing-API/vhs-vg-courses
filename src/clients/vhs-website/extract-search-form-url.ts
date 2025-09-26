@@ -43,9 +43,18 @@ export async function extractSearchFormUrl(): Promise<string> {
       throw err;
     }
 
-    // Build absolute URL in case action is relative
-    const url = new URL(action, baseUrl).toString();
-    log.info({ operation: 'parse', selector, durationMs: end(), url }, 'Extracted search form url');
+    // Handle hash fragment form actions (JavaScript forms)
+    let url: string;
+    if (action.startsWith('#')) {
+      // Hash fragment form - post to the same page
+      url = searchUrl;
+      log.debug({ operation: 'parse', hashAction: action, resolvedUrl: url }, 'Resolved hash fragment form action');
+    } else {
+      // Build absolute URL in case action is relative
+      url = new URL(action, baseUrl).toString();
+    }
+    
+    log.info({ operation: 'parse', selector, durationMs: end(), url, originalAction: action }, 'Extracted search form url');
     return url;
   } catch (err) {
     log.error({ operation: 'parse', selector, url: searchUrl, err: errorToObject(err) }, 'Failed to extract search form url');
