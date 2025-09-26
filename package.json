@@ -1,6 +1,6 @@
 {
   "name": "vhs-vg-courses",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "VHS VG Course Calendar API - Web scraping and calendar feed generation for Volkshochschule courses",
   "private": true,
   "type": "module",
