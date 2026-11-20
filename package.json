@@ -9,7 +9,7 @@
     "build": "next build",
     "start": "next start",
     "stop": "lsof -ti:9200 | xargs kill -9",
-    "lint": "next lint",
+    "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -34,40 +34,50 @@
     "@ts-rest/core": "^3.52.1",
     "@ts-rest/next": "^3.52.1",
     "@ts-rest/open-api": "^3.52.1",
-    "@types/cheerio": "^1.0.0",
-    "@types/node": "^24.3.0",
-    "@types/react": "^19.1.12",
-    "@types/react-dom": "^19.1.9",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "@types/swagger-ui-react": "^5.18.0",
-    "cheerio": "^1.1.2",
-    "ical-generator": "^9.0.0",
-    "next": "^15.5.2",
-    "pino": "^9.5.0",
-    "pino-pretty": "^11.3.0",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
-    "slugify": "^1.6.6",
-    "swagger-ui-react": "^5.28.0",
-    "typescript": "^5.9.2",
+    "cheerio": "^1.2.0",
+    "ical-generator": "^11.1.4",
+    "next": "^16.4.6",
+    "pino": "^10.4.0",
+    "pino-pretty": "^13.2.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "slugify": "^1.6.9",
+    "swagger-ui-react": "^5.35.1",
+    "typescript": "^6.0.3",
     "url-regex-safe": "^4.0.0",
-    "zod": "^3.22.3"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@playwright/test": "^1.55.0",
-    "@testing-library/jest-dom": "^6.8.0",
-    "@testing-library/react": "^16.3.0",
+    "@playwright/test": "^1.65.1",
+    "@testing-library/jest-dom": "^8.0.0",
+    "@testing-library/react": "^16.3.3",
     "@ts-rest/serverless": "^3.52.1",
-    "@types/jsdom": "^21.1.7",
-    "@typescript-eslint/eslint-plugin": "^8.41.0",
-    "@typescript-eslint/parser": "^8.41.0",
-    "@vitest/ui": "^3.2.4",
-    "eslint": "^9.34.0",
-    "eslint-config-next": "^15.5.2",
-    "jsdom": "^26.1.0",
-    "playwright": "^1.55.0",
-    "vitest": "^3.2.4"
+    "@types/jsdom": "^30.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.73.0",
+    "@typescript-eslint/parser": "^8.73.0",
+    "@vitest/ui": "^5.1.1",
+    "eslint": "^10.15.0",
+    "eslint-config-next": "^16.4.6",
+    "jsdom": "^31.0.1",
+    "playwright": "^1.65.1",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.1"
   },
   "engines": {
-    "node": "22.x"
+    "node": "26.x"
+  },
+  "packageManager": "pnpm@10.34.9",
+  "pnpm": {
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "eslint-plugin-import>eslint": "10",
+        "eslint-plugin-jsx-a11y>eslint": "10",
+        "eslint-plugin-react>eslint": "10"
+      }
+    }
   }
 }

@@ -1,6 +1,6 @@
 import { createNextHandler } from "@ts-rest/serverless/next";
 import { HealthContract } from "./health.contract";
-import packageJson from "../../../../package.json" assert { type: "json" };
+import packageJson from "../../../../package.json" with { type: "json" };
 import { checkVhsWebsiteHealth } from "@/clients/vhs-website/check-vhs-website-health";
 import type { ServiceStatusSchema } from "@/rest/health.schema";
 import logger from "@/logging/logger";
