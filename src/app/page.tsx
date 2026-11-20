@@ -1,7 +1,7 @@
 import SwaggerUI from "swagger-ui-react";
 import { generateOpenApi } from "@ts-rest/open-api";
 import { Metadata } from "next";
-import packageJson from "../../package.json" assert { type: "json" };
+import packageJson from "../../package.json" with { type: "json" };
 import { ApiContract } from "./api/api.contract";
 
 export const metadata: Metadata = {
